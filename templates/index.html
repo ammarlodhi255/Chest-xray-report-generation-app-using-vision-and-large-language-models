@@ -3,147 +3,203 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Image Report Generator</title>
+    <title>Medical Image Report & Chat</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         /* --- General Body & Container Styling --- */
         body {
-            padding-top: 30px;
+            padding-top: 20px; /* Reduced padding */
             padding-bottom: 30px;
-            background-color: #f0f2f5; /* Light gray background for contrast */
+            background-color: #f0f2f5;
             color: #333;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         }
 
-        .container {
-            max-width: 960px; /* Wider container for side-by-side view */
-            background-color: #ffffff; /* White background for the main content */
-            padding: 35px;
+        .container-fluid { /* Use fluid container for better width control */
+            max-width: 1400px; /* Adjust max width as needed */
+            background-color: #ffffff;
+            padding: 25px;
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
 
         h1 {
-            color: #0d6efd; /* Primary blue color for the main heading */
+            color: #0d6efd;
             font-weight: 600;
-            margin-bottom: 1.8rem !important; /* More space below title */
+            margin-bottom: 1.5rem !important; /* Reduced margin */
+            font-size: 1.8rem; /* Slightly smaller title */
+        }
+        h2 {
+            font-size: 1.3rem; /* Smaller headings */
+            color: #495057;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #0d6efd;
+            display: inline-block;
         }
 
-        /* --- Form Styling --- */
+        /* --- Main Layout (Chat Left, Content Right) --- */
+        .main-row {
+            margin-top: 20px;
+        }
+
+        /* --- Chat Interface Section (Left Column) --- */
+        #chat-column {
+            border-right: 1px solid #e0e0e0; /* Separator line */
+            padding-right: 25px;
+            display: flex;
+            flex-direction: column;
+            height: calc(90vh - 100px); /* Adjust height dynamically, leave space for header/footer */
+            min-height: 500px; /* Minimum height */
+        }
+
+        #chat-container {
+            flex-grow: 1; /* Take remaining vertical space */
+            display: flex;
+            flex-direction: column;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            overflow: hidden; /* Hide outer scrollbar */
+        }
+         /* Conditional display based on report generation */
+        #chat-column.disabled {
+            opacity: 0.6;
+            pointer-events: none; /* Disable interaction */
+        }
+        #chat-column.disabled #chat-placeholder {
+            display: block; /* Show placeholder when disabled */
+        }
+        #chat-placeholder {
+             display: none; /* Hidden by default */
+             text-align: center;
+             padding: 50px 10px;
+             color: #6c757d;
+             font-style: italic;
+        }
+
+        #chat-messages {
+            flex-grow: 1; /* Allow messages area to grow */
+            overflow-y: auto; /* Enable scrolling for messages */
+            margin-bottom: 15px;
+            padding-right: 10px; /* Space for scrollbar */
+        }
+
+        .chat-message {
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            max-width: 85%;
+            word-wrap: break-word; /* Wrap long words */
+        }
+
+        .user-message {
+            background-color: #cfe2ff; /* Light blue for user */
+            margin-left: auto; /* Align right */
+            border-bottom-right-radius: 0; /* Speech bubble effect */
+            text-align: right;
+        }
+
+        .bot-message {
+            background-color: #e2e3e5; /* Light gray for bot */
+            margin-right: auto; /* Align left */
+            border-bottom-left-radius: 0; /* Speech bubble effect */
+            text-align: left;
+        }
+        .bot-message.thinking::after {
+            content: ' thinking...';
+            font-style: italic;
+            color: #6c757d;
+        }
+
+        #chat-form {
+            display: flex;
+            margin-top: auto; /* Push form to the bottom */
+            gap: 10px; /* Space between input and button */
+        }
+
+        #chat-input {
+            flex-grow: 1;
+            border-radius: 20px; /* Rounded input */
+            padding: 8px 15px;
+        }
+
+        #send-button {
+            border-radius: 50%; /* Circular button */
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0; /* Prevent shrinking */
+        }
+        #send-button svg { /* Simple send icon */
+            width: 18px; height: 18px; fill: white;
+        }
+
+
+        /* --- Content Section (Right Column - Form, Image, Report) --- */
+        #content-column {
+            padding-left: 25px;
+            max-height: calc(90vh - 100px); /* Match chat height */
+            overflow-y: auto; /* Scroll if content exceeds height */
+        }
+
         #upload-form {
-            margin-bottom: 40px; /* Space below the form before results */
-            padding: 20px;
+            margin-bottom: 25px; /* Space below the form before results */
+            padding: 15px;
             border: 1px solid #e0e0e0;
             border-radius: 6px;
             background-color: #fafafa;
         }
+        .form-label { font-weight: 500; }
+        .btn-primary { background-color: #0d6efd; border-color: #0d6efd; padding: 8px 18px; font-size: 0.95rem; } /* Slightly smaller button */
+        .btn-primary:hover { background-color: #0b5ed7; border-color: #0a58ca; }
+        .spinner-border { display: none; margin-right: 5px; width: 1rem; height: 1rem; }
+        .processing .spinner-border { display: inline-block; }
+        .processing button[type="submit"] { cursor: not-allowed; opacity: 0.7; }
 
-        .form-label {
-            font-weight: 500;
-        }
+        /* --- Result Area Styling (Image & Report) --- */
+        .result-area { margin-top: 20px; }
+        .img-preview-container, .report-box-container { margin-bottom: 20px; }
+        .img-preview { max-width: 100%; height: auto; border: 1px solid #dee2e6; border-radius: 6px; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07); }
+        .report-box { border: 1px solid #dee2e6; padding: 15px; background-color: #f8f9fa; border-radius: 6px; min-height: 200px; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; color: #212529; white-space: pre-wrap; word-wrap: break-word; box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07); line-height: 1.5; }
 
-        /* --- Button & Spinner --- */
-        .btn-primary {
-            background-color: #0d6efd;
-            border-color: #0d6efd;
-            padding: 10px 20px;
-            font-size: 1rem;
-            transition: background-color 0.2s ease;
-        }
-        .btn-primary:hover {
-             background-color: #0b5ed7;
-             border-color: #0a58ca;
-        }
+        /* --- Hidden element for report context --- */
+        #report-context-data { display: none; }
 
-        .spinner-border {
-            display: none; /* Initially hidden */
-            margin-right: 5px;
-            width: 1rem; /* Match button text size better */
-            height: 1rem;
-        }
-        .processing .spinner-border {
-            display: inline-block;
-        }
-        .processing button[type="submit"] {
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        /* --- Result Section (Image and Report) --- */
-        .result-section {
-            margin-top: 30px; /* Consistent spacing */
-            padding-top: 20px;
-            border-top: 1px solid #eee; /* Subtle separator */
-        }
-
-        /* Style the headings within the result section */
-        .result-section h2 {
-            font-size: 1.4rem;
-            color: #495057; /* Dark gray */
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #0d6efd; /* Highlight under heading */
-            display: inline-block; /* Make border only width of text */
-        }
-
-        /* --- Image Preview Styling --- */
-        .img-preview-container { /* Added container for potential centering/padding */
-             padding-right: 15px; /* Space between image and report column */
-        }
-        .img-preview {
-            max-width: 100%;
-            height: auto; /* Maintain aspect ratio */
-            border: 1px solid #dee2e6; /* Bootstrap's light gray border */
-            border-radius: 6px; /* Slightly rounded corners */
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07); /* Subtle shadow */
-            margin-bottom: 15px; /* Space below image on smaller screens */
-        }
-
-        /* --- Report Box Styling --- */
-        .report-box-container { /* Added container for potential centering/padding */
-             padding-left: 15px; /* Space between image and report column */
-        }
-        .report-box {
-            border: 1px solid #dee2e6; /* Match image border */
-            padding: 20px;
-            background-color: #f8f9fa; /* Bootstrap's light background */
-            border-radius: 6px; /* Match image radius */
-            min-height: 250px; /* Ensure a decent minimum height */
-            font-family: 'Courier New', Courier, monospace; /* Monospace for report text */
-            font-size: 0.9rem;
-            color: #212529; /* Darker text for readability */
-            white-space: pre-wrap; /* Preserve whitespace and newlines */
-            word-wrap: break-word; /* Break long words */
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07); /* Subtle shadow */
-            line-height: 1.6; /* Improve readability */
-        }
-
-        /* Responsive adjustments for smaller screens */
-        @media (max-width: 767.98px) { /* Target devices smaller than md breakpoint */
-             .img-preview-container, .report-box-container {
-                  padding-left: 0;
-                  padding-right: 0;
-             }
-             .report-box {
-                  margin-top: 20px; /* Add space when stacked */
-             }
-             .container {
-                 padding: 20px;
-             }
-             h1 {
-                 font-size: 1.8rem;
-             }
+        /* Responsive adjustments */
+        @media (max-width: 991.98px) { /* Target smaller than lg */
+            #chat-column {
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+                padding-right: 0;
+                margin-bottom: 20px;
+                height: 50vh; /* Adjust height for stacked layout */
+                min-height: 350px;
+            }
+            #content-column {
+                padding-left: 0;
+                max-height: none; /* Remove max-height */
+                overflow-y: visible;
+            }
+            .container-fluid { padding: 15px; }
+            h1 { font-size: 1.6rem; }
+            h2 { font-size: 1.2rem; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1 class="mb-4 text-center">Image Report Generator</h1>
+    <div class="container-fluid">
+        <h1 class="mb-3 text-center">Medical Image Report & Chat</h1>
 
+        <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
             {% for category, message in messages %}
-              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+              <div class="alert alert-{{ category }} alert-dismissible fade show mb-3" role="alert">
                 {{ message }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
               </div>
@@ -151,98 +207,223 @@
           {% endif %}
         {% endwith %}
 
-        <!-- Form Section -->
-        <form id="upload-form" method="post" enctype="multipart/form-data" action="/predict">
-            <div class="mb-3">
-                <label for="imageUpload" class="form-label">Upload Chest X-Ray Image:</label>
-                <input class="form-control" type="file" id="imageUpload" name="image" accept="image/png, image/jpeg, image/jpg" required>
-            </div>
+        <!-- Main Row: Chat on Left, Content on Right -->
+        <div class="row main-row">
 
-            <div class="mb-3">
-                <label for="vlmSelect" class="form-label">Choose Vision-Language Model:</label>
-                <select class="form-select" id="vlmSelect" name="vlm_choice">
-                    <option value="swin_t5_chexpert" selected>Swin-T5 (CheXpert Trained)</option>
-                    <!-- Add more options here later -->
-                </select>
-                <small class="form-text text-muted">Select the model to generate the report.</small>
-            </div>
+            <!-- Chat Column (Left) -->
+            <div class="col-lg-5" id="chat-column" class="{{ 'disabled' if not report or not chatbot_available }}">
+                <h2>Chat about Report</h2>
+                 <small class="text-muted mb-2 d-block">Ask questions based *only* on the generated report.</small>
 
-            <div class="mb-3">
-                <label for="maxLength" class="form-label">Max Report Length (tokens):</label>
-                <input type="number" class="form-control" id="maxLength" name="max_length" value="100" min="10" max="512">
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100"> <!-- Make button full width -->
-                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                 Generate Report
-            </button>
-        </form>
-        <!-- End Form Section -->
-
-        <!-- Result Section - Displayed conditionally via Flask -->
-        {% if report or image_data %}
-        <div class="result-section">
-            <div class="row">
-                <!-- Image Column -->
-                {% if image_data %}
-                <div class="col-md-6">
-                     <div class="img-preview-container">
-                        <h2>Uploaded Image:</h2>
-                        <img src="data:image/jpeg;base64,{{ image_data }}" alt="Uploaded Image" class="img-preview">
-                    </div>
-                </div>
-                {% endif %}
-
-                <!-- Report Column -->
-                {% if report %}
-                <div class="col-md-6">
-                    <div class="report-box-container">
-                        <h2>Generated Report:</h2>
-                        <div class="report-box">
-                            {{ report }}
-                        </div>
-                    </div>
-                </div>
+                 {% if not chatbot_available %}
+                     <div class="alert alert-warning small p-2">Chatbot (Llama 3.1) is not available. Please check server logs.</div>
                  {% endif %}
-            </div> <!-- End Row -->
-        </div> <!-- End Result Section -->
-        {% endif %}
-        <!-- End Result Section -->
 
+                <div id="chat-container">
+                     <div id="chat-placeholder">Generate a report first to enable chat.</div>
+                    <div id="chat-messages">
+                        <!-- Chat messages will appear here -->
+                    </div>
+                    <form id="chat-form" action="javascript:void(0);"> <!-- Prevent default submission -->
+                        <input type="text" id="chat-input" class="form-control" placeholder="Type your question..." autocomplete="off" {% if not report or not chatbot_available %}disabled{% endif %}>
+                        <button type="submit" id="send-button" class="btn btn-primary" {% if not report or not chatbot_available %}disabled{% endif %}>
+                             <!-- Simple Send Icon SVG -->
+                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Content Column (Right - Form, Image, Report) -->
+            <div class="col-lg-7" id="content-column">
+
+                <!-- Form Section -->
+                <h2>Generate Report</h2>
+                <form id="upload-form" method="post" enctype="multipart/form-data" action="/predict">
+                    <div class="mb-3">
+                        <label for="imageUpload" class="form-label">1. Upload Chest X-Ray Image:</label>
+                        <input class="form-control form-control-sm" type="file" id="imageUpload" name="image" accept="image/png, image/jpeg, image/jpg" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="vlmSelect" class="form-label">2. Choose Vision-Language Model:</label>
+                        <select class="form-select form-select-sm" id="vlmSelect" name="vlm_choice">
+                            <option value="swin_t5_chexpert" selected>Swin-T5 (CheXpert Trained)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="maxLength" class="form-label">3. Max Report Length (tokens):</label>
+                        <input type="number" class="form-control form-control-sm" id="maxLength" name="max_length" value="100" min="10" max="512">
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100">
+                         <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                         Generate Report
+                    </button>
+                </form>
+                <!-- End Form Section -->
+
+                <!-- Result Section - Displayed conditionally -->
+                {% if report or image_data %}
+                <div class="result-area">
+                    <div class="row">
+                        <!-- Image Column -->
+                        {% if image_data %}
+                        <div class="col-md-6">
+                             <div class="img-preview-container">
+                                <h2>Uploaded Image:</h2>
+                                <img src="data:image/jpeg;base64,{{ image_data }}" alt="Uploaded Image" class="img-preview">
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Report Column -->
+                        {% if report %}
+                        <div class="col-md-6">
+                            <div class="report-box-container">
+                                <h2>Generated Report:</h2>
+                                <div class="report-box">
+                                    {{ report }}
+                                </div>
+                                <!-- Hidden div to store the report for JS -->
+                                <div id="report-context-data" data-report="{{ report|e }}"></div>
+                            </div>
+                        </div>
+                         {% endif %}
+                    </div> <!-- End Result Row -->
+                </div> <!-- End Result Area -->
+                {% endif %}
+                <!-- End Result Section -->
+
+            </div> <!-- End Content Column -->
+        </div> <!-- End Main Row -->
     </div> <!-- End Container -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // --- Form Processing Indicator ---
         const form = document.getElementById('upload-form');
         const submitButton = form.querySelector('button[type="submit"]');
         const spinner = submitButton.querySelector('.spinner-border');
 
         form.addEventListener('submit', function() {
-            // Check if file input has a file selected
             const fileInput = document.getElementById('imageUpload');
             if (fileInput.files.length > 0) {
                 form.classList.add('processing');
                 submitButton.disabled = true;
-                 // Make sure spinner is visible
-                 if (spinner) {
-                      spinner.style.display = 'inline-block';
-                 }
+                 if (spinner) spinner.style.display = 'inline-block';
             }
-            // If no file is selected, HTML5 'required' attribute should prevent submission,
-            // but this is an extra JS guard.
         });
 
-        // Optional: Reset loading state if navigating back (using browser back button)
         window.addEventListener('pageshow', function(event) {
-             // event.persisted is true if page is loaded from cache (bfcache)
              if (event.persisted || (window.performance && window.performance.navigation.type == 2)) {
                 form.classList.remove('processing');
                 submitButton.disabled = false;
-                 if (spinner) {
-                      spinner.style.display = 'none';
-                 }
+                 if (spinner) spinner.style.display = 'none';
              }
         });
+
+        // --- Chat Functionality ---
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const sendButton = document.getElementById('send-button');
+        const reportContextData = document.getElementById('report-context-data');
+        const chatColumn = document.getElementById('chat-column');
+
+        // Check if chat should be enabled based on report presence and chatbot availability flag from Flask
+        const isChatEnabled = reportContextData && {{ chatbot_available|lower }}; // Get boolean from Flask var
+
+        if (!isChatEnabled) {
+            if (chatColumn) chatColumn.classList.add('disabled');
+            if (chatInput) chatInput.disabled = true;
+            if (sendButton) sendButton.disabled = true;
+            console.log("Chat disabled: No report context or chatbot unavailable.");
+        } else {
+             if (chatColumn) chatColumn.classList.remove('disabled');
+             if (chatInput) chatInput.disabled = false;
+             if (sendButton) sendButton.disabled = false;
+             console.log("Chat enabled.");
+        }
+
+
+        // Function to add a message to the chat display
+        function addChatMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('chat-message', sender === 'user' ? 'user-message' : 'bot-message');
+            messageDiv.textContent = message;
+            chatMessages.appendChild(messageDiv);
+            // Scroll to the bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+            return messageDiv; // Return the element for potential modification (like adding 'thinking')
+        }
+
+        // Handle chat form submission
+        if (chatForm && isChatEnabled) {
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault(); // Already prevented by action="javascript:void(0);" but good practice
+                const question = chatInput.value.trim();
+                const reportContext = reportContextData ? reportContextData.dataset.report : null;
+
+                if (!question || !reportContext) {
+                    // Maybe show a small error/warning in chat?
+                    console.warn("No question entered or report context missing.");
+                    return;
+                }
+
+                // 1. Display user's message
+                addChatMessage(question, 'user');
+                chatInput.value = ''; // Clear input
+                chatInput.disabled = true; // Disable input while waiting
+                sendButton.disabled = true;
+
+                // 2. Display temporary "thinking" message for bot
+                const thinkingMessage = addChatMessage('', 'bot');
+                thinkingMessage.classList.add('thinking');
+
+
+                // 3. Send data to backend
+                try {
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            question: question,
+                            report_context: reportContext
+                        }),
+                    });
+
+                    // Remove "thinking" state/text
+                    thinkingMessage.classList.remove('thinking');
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({ error: 'Unknown server error' }));
+                        console.error('Chat API Error:', response.status, errorData);
+                        thinkingMessage.textContent = `Error: ${errorData.error || response.statusText}`;
+                        thinkingMessage.style.color = 'red'; // Indicate error clearly
+                    } else {
+                        const data = await response.json();
+                        // Update the bot message element with the actual answer
+                        thinkingMessage.textContent = data.answer || "Received empty response.";
+                    }
+
+                } catch (error) {
+                    console.error('Fetch error:', error);
+                    // Update the bot message element with the fetch error
+                     thinkingMessage.classList.remove('thinking');
+                    thinkingMessage.textContent = 'Error connecting to the chat service.';
+                    thinkingMessage.style.color = 'red';
+                } finally {
+                    // Re-enable input regardless of success/failure
+                    chatInput.disabled = false;
+                    sendButton.disabled = false;
+                     chatInput.focus(); // Focus back on input for next question
+                     // Ensure scroll is still at bottom after potential height changes
+                     chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            });
+        }
+
     </script>
 
 </body>

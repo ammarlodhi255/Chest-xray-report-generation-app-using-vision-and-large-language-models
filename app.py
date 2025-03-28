@@ -5,20 +5,31 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 from PIL import Image
-from flask import Flask, request, render_template, flash, redirect, url_for
+from flask import Flask, request, render_template, flash, redirect, url_for, jsonify
+from dotenv import load_dotenv # Import dotenv
 
 # Import necessary classes from your original script / transformers
 from transformers import (
     SwinModel,
     T5ForConditionalGeneration,
     T5Tokenizer,
+    AutoModelForCausalLM, # Added for Llama
+    AutoTokenizer,       # Added for Llama
 )
 from transformers.modeling_outputs import BaseModelOutput
+
+load_dotenv() # Load environment variables from .env file
 
 # --- Configuration ---
 MODEL_PATH = '/cluster/home/ammaa/Downloads/Projects/CheXpert-Report-Generation/swin-t5-model.pth'  # Path to your trained model weights
 SWIN_MODEL_NAME = "microsoft/swin-base-patch4-window7-224"
 T5_MODEL_NAME = "t5-base"
+LLAMA_MODEL_NAME = "meta-llama/Meta-Llama-3.1-8B-Instruct" # Llama model
+HF_TOKEN = os.getenv("HUGGING_FACE_HUB_TOKEN") # Get token from env
+
+if not HF_TOKEN:
+    print("Warning: HUGGING_FACE_HUB_TOKEN environment variable not set. Llama model download might fail.")
+
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 UPLOAD_FOLDER = 'uploads' # Optional: If you want to save uploads temporarily
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
@@ -27,7 +38,7 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 # if not os.path.exists(UPLOAD_FOLDER):
 #     os.makedirs(UPLOAD_FOLDER)
 
-# --- Model Definition (Copied from your script) ---
+# --- Swin-T5 Model Definition ---
 class ImageCaptioningModel(nn.Module):
     def __init__(self,
                  swin_model_name=SWIN_MODEL_NAME,
@@ -38,8 +49,6 @@ class ImageCaptioningModel(nn.Module):
         self.img_proj = nn.Linear(self.swin.config.hidden_size, self.t5.config.d_model)
 
     def forward(self, images, labels=None):
-        # This forward is primarily for training/loss calculation.
-        # For inference, we usually call components separately or use generate.
         swin_outputs = self.swin(images)
         img_feats = swin_outputs.last_hidden_state
         img_feats_proj = self.img_proj(img_feats)
@@ -47,38 +56,38 @@ class ImageCaptioningModel(nn.Module):
         if labels is not None:
             outputs = self.t5(encoder_outputs=encoder_outputs, labels=labels)
         else:
-            # For inference without labels, T5 generate method is typically used externally
-            # This path might not be directly used in our inference function below
             outputs = self.t5(encoder_outputs=encoder_outputs)
         return outputs
 
 # --- Global Variables for Model Components ---
-# Load model and tokenizer globally on startup to avoid reloading per request
-model = None
-tokenizer = None
+swin_t5_model = None
+swin_t5_tokenizer = None
 transform = None
+llama_model = None
+llama_tokenizer = None
 
-def load_model_components():
-    """Loads the model, tokenizer, and transformation pipeline."""
-    global model, tokenizer, transform
+def load_swin_t5_model_components():
+    """Loads the Swin-T5 model, tokenizer, and transformation pipeline."""
+    global swin_t5_model, swin_t5_tokenizer, transform
     try:
-        print(f"Loading model components on device: {DEVICE}")
+        print(f"Loading Swin-T5 model components on device: {DEVICE}")
         # Initialize model structure
-        model = ImageCaptioningModel(swin_model_name=SWIN_MODEL_NAME, t5_model_name=T5_MODEL_NAME)
+        swin_t5_model = ImageCaptioningModel(swin_model_name=SWIN_MODEL_NAME, t5_model_name=T5_MODEL_NAME)
 
         # Load state dictionary
         if not os.path.exists(MODEL_PATH):
-             raise FileNotFoundError(f"Model file not found at {MODEL_PATH}. Please place the '.pth' file correctly.")
-        model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
-        model.to(DEVICE)
-        model.eval()  # Set to evaluation mode
-        print("Model loaded successfully.")
+             raise FileNotFoundError(f"Swin-T5 Model file not found at {MODEL_PATH}.")
+        # Load Swin-T5 model to the primary DEVICE (can be CPU or GPU)
+        swin_t5_model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
+        swin_t5_model.to(DEVICE)
+        swin_t5_model.eval()  # Set to evaluation mode
+        print("Swin-T5 Model loaded successfully.")
 
         # Load tokenizer
-        tokenizer = T5Tokenizer.from_pretrained(T5_MODEL_NAME)
-        print("Tokenizer loaded successfully.")
+        swin_t5_tokenizer = T5Tokenizer.from_pretrained(T5_MODEL_NAME)
+        print("Swin-T5 Tokenizer loaded successfully.")
 
-        # Define image transformations (should match training)
+        # Define image transformations
         transform = transforms.Compose([
             transforms.Resize((224, 224)),
             transforms.ToTensor(),
@@ -88,18 +97,55 @@ def load_model_components():
         print("Transforms defined.")
 
     except Exception as e:
-        print(f"Error loading model components: {e}")
-        # Handle error appropriately - maybe raise it to stop Flask if model is essential
+        print(f"Error loading Swin-T5 model components: {e}")
         raise
 
-# --- Inference Function ---
-def generate_report(image_bytes, selected_vlm, max_length=100):
-    """Generates a report/caption for the given image bytes."""
-    global model, tokenizer, transform
-    if not all([model, tokenizer, transform]):
-        raise RuntimeError("Model components not loaded properly.")
+def load_llama_model_components():
+    """Loads the Llama model and tokenizer."""
+    global llama_model, llama_tokenizer
+    if not HF_TOKEN:
+        print("Skipping Llama model load: Hugging Face token not found.")
+        return # Don't attempt to load if no token
 
-    # Basic check for VLM choice - expand if more models added
+    try:
+        print(f"Loading Llama model ({LLAMA_MODEL_NAME}) components...")
+        # Use bfloat16 for memory efficiency if available, otherwise float16/32
+        torch_dtype = torch.bfloat16 if torch.cuda.is_available() and torch.cuda.is_bf16_supported() else torch.float16
+
+        llama_tokenizer = AutoTokenizer.from_pretrained(LLAMA_MODEL_NAME, token=HF_TOKEN)
+        llama_model = AutoModelForCausalLM.from_pretrained(
+            LLAMA_MODEL_NAME,
+            torch_dtype=torch_dtype,
+            device_map="auto", # Automatically distribute across GPUs/CPU RAM if needed
+            token=HF_TOKEN
+            # Add quantization config here if needed (e.g., load_in_4bit=True with bitsandbytes)
+            # quantization_config=BitsAndBytesConfig(...)
+        )
+        llama_model.eval() # Set to evaluation mode
+        print("Llama Model and Tokenizer loaded successfully.")
+
+    except Exception as e:
+        print(f"Error loading Llama model components: {e}")
+        # Decide if the app should run without the chat feature or crash
+        llama_model = None
+        llama_tokenizer = None
+        print("WARNING: Chatbot functionality will be disabled due to loading error.")
+        # raise # Uncomment this if the chat feature is critical
+
+# --- Inference Function (Swin-T5) ---
+def generate_report(image_bytes, selected_vlm, max_length=100):
+    """Generates a report/caption for the given image bytes using Swin-T5."""
+    global swin_t5_model, swin_t5_tokenizer, transform
+    if not all([swin_t5_model, swin_t5_tokenizer, transform]):
+        # Check if loading failed or wasn't called
+        if swin_t5_model is None or swin_t5_tokenizer is None or transform is None:
+             load_swin_t5_model_components() # Attempt to load again if missing
+             if not all([swin_t5_model, swin_t5_tokenizer, transform]):
+                 raise RuntimeError("Swin-T5 model components failed to load.")
+        else:
+             raise RuntimeError("Swin-T5 model components not loaded properly.")
+
+
     if selected_vlm != "swin_t5_chexpert":
         return "Error: Selected VLM is not supported."
 
@@ -109,39 +155,86 @@ def generate_report(image_bytes, selected_vlm, max_length=100):
 
         # Perform inference
         with torch.no_grad():
-            # 1. Get image features from Swin
-            swin_outputs = model.swin(input_image)
+            swin_outputs = swin_t5_model.swin(input_image)
             img_feats = swin_outputs.last_hidden_state
-
-            # 2. Project features
-            img_feats_proj = model.img_proj(img_feats)
-
-            # 3. Wrap features for T5 encoder input
+            img_feats_proj = swin_t5_model.img_proj(img_feats)
             encoder_outputs = BaseModelOutput(last_hidden_state=img_feats_proj)
 
-            # 4. Generate text using T5 decoder
-            generated_ids = model.t5.generate(
+            generated_ids = swin_t5_model.t5.generate(
                 encoder_outputs=encoder_outputs,
                 max_length=max_length,
-                num_beams=4,        # Beam search parameters (can be tuned)
+                num_beams=4,
                 early_stopping=True
             )
-
-            # 5. Decode generated IDs to text
-            report = tokenizer.decode(generated_ids[0], skip_special_tokens=True)
+            report = swin_t5_tokenizer.decode(generated_ids[0], skip_special_tokens=True)
             return report
 
     except Exception as e:
-        print(f"Error during report generation: {e}")
+        print(f"Error during Swin-T5 report generation: {e}")
         return f"Error generating report: {e}"
+
+# --- Chat Function (Llama 3.1) ---
+def generate_chat_response(question, report_context, max_new_tokens=250):
+    """Generates a chat response using Llama based on the report context."""
+    global llama_model, llama_tokenizer
+    if not llama_model or not llama_tokenizer:
+        return "Chatbot is currently unavailable."
+
+    # System prompt to guide the LLM
+    system_prompt = "You are a helpful medical assistant. I'm a medical student, your task is to help me understand the following report."
+    # Construct the prompt using the chat template
+    messages = [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": f"Based on the following report:\n\n---\n{report_context}\n---\n\nPlease answer this question: {question}"}
+    ]
+
+    # Prepare input for the model
+    try:
+        # Use the tokenizer's chat template
+        input_ids = llama_tokenizer.apply_chat_template(
+            messages,
+            add_generation_prompt=True,
+            return_tensors="pt"
+        ).to(llama_model.device) # Move input IDs to the same device as the model
+
+        # Set terminators for generation
+        # Common terminators for Llama 3 Instruct
+        terminators = [
+            llama_tokenizer.eos_token_id,
+            llama_tokenizer.convert_tokens_to_ids("<|eot_id|>")
+        ]
+
+        with torch.no_grad():
+            outputs = llama_model.generate(
+                input_ids,
+                max_new_tokens=max_new_tokens,
+                eos_token_id=terminators,
+                do_sample=True, # Use sampling for more natural responses
+                temperature=0.6,
+                top_p=0.9,
+                pad_token_id=llama_tokenizer.eos_token_id # Avoid warning, set pad_token_id
+            )
+
+        # Decode the response, skipping the input prompt part
+        response_ids = outputs[0][input_ids.shape[-1]:]
+        response_text = llama_tokenizer.decode(response_ids, skip_special_tokens=True)
+        return response_text.strip()
+
+    except Exception as e:
+        print(f"Error during Llama chat generation: {e}")
+        return f"Error generating chat response: {e}"
 
 
 # --- Flask Application Setup ---
 app = Flask(__name__)
-app.secret_key = os.urandom(24) # Needed for flashing messages
+app.secret_key = os.urandom(24)
 
-# Load model when the application starts
-load_model_components()
+# Load models when the application starts
+print("Loading models on application startup...")
+load_swin_t5_model_components()
+load_llama_model_components() # Load Llama
+print("Model loading complete.")
+
 
 def allowed_file(filename):
     return '.' in filename and \
@@ -150,17 +243,21 @@ def allowed_file(filename):
 @app.route('/', methods=['GET'])
 def index():
     """Renders the main page."""
-    return render_template('index.html')
+    # Pass whether the chatbot is available to the template
+    chatbot_available = bool(llama_model and llama_tokenizer)
+    return render_template('index.html', chatbot_available=chatbot_available)
 
 @app.route('/predict', methods=['POST'])
 def predict():
     """Handles image upload and prediction."""
+    chatbot_available = bool(llama_model and llama_tokenizer) # Check again
+
     if 'image' not in request.files:
         flash('No image file part in the request.', 'danger')
         return redirect(url_for('index'))
 
     file = request.files['image']
-    vlm_choice = request.form.get('vlm_choice', 'swin_t5_chexpert') # Get selected VLM
+    vlm_choice = request.form.get('vlm_choice', 'swin_t5_chexpert')
     try:
         max_length = int(request.form.get('max_length', 100))
         if not (10 <= max_length <= 512):
@@ -169,7 +266,6 @@ def predict():
          flash(f'Invalid Max Length value: {e}', 'danger')
          return redirect(url_for('index'))
 
-
     if file.filename == '':
         flash('No image selected for uploading.', 'warning')
         return redirect(url_for('index'))
@@ -177,24 +273,46 @@ def predict():
     if file and allowed_file(file.filename):
         try:
             image_bytes = file.read()
-            # Generate report
+            # Generate report using Swin-T5
             report = generate_report(image_bytes, vlm_choice, max_length)
 
-            # Encode image bytes to base64 to display on the results page without saving
             image_data = base64.b64encode(image_bytes).decode('utf-8')
 
-            # Render the page again with results
-            return render_template('index.html', report=report, image_data=image_data)
+            # Render the page with results AND the report text for JS/Chat
+            return render_template('index.html',
+                                   report=report,
+                                   image_data=image_data,
+                                   chatbot_available=chatbot_available) # Pass availability again
 
         except Exception as e:
-            flash(f'An error occurred: {e}', 'danger')
-            print(f"Error during prediction: {e}") # Log the full error server-side
+            flash(f'An error occurred during prediction: {e}', 'danger')
+            print(f"Error during prediction: {e}")
             return redirect(url_for('index'))
     else:
         flash('Invalid image file type. Allowed types: png, jpg, jpeg.', 'danger')
         return redirect(url_for('index'))
 
+# --- New Chat Endpoint ---
+@app.route('/chat', methods=['POST'])
+def chat():
+    """Handles chat requests based on the generated report."""
+    if not llama_model or not llama_tokenizer:
+        return jsonify({"answer": "Chatbot is not available."}), 503 # Service unavailable
+
+    data = request.get_json()
+    if not data or 'question' not in data or 'report_context' not in data:
+        return jsonify({"error": "Missing question or report context"}), 400
+
+    question = data['question']
+    report_context = data['report_context']
+
+    try:
+        answer = generate_chat_response(question, report_context)
+        return jsonify({"answer": answer})
+    except Exception as e:
+        print(f"Error in /chat endpoint: {e}")
+        return jsonify({"error": "Failed to generate chat response"}), 500
+
 if __name__ == '__main__':
-    # Use host='0.0.0.0' to make it accessible on your network
-    # debug=True is useful for development but should be OFF in production
-    app.run(host='0.0.0.0', port=5003, debug=False)
+    # Make sure to set debug=False for production/sharing
+    app.run(host='0.0.0.0', port=5002, debug=False)
