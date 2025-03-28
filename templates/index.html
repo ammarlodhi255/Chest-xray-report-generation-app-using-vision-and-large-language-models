@@ -4,15 +4,23 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Medical Image Report & Chat</title>
+    <!-- Google Font: Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #0d6efd;
+            --primary-color: #0d6efd; /* Medical Blue */
             --light-gray: #f0f2f5;
             --medium-gray: #dee2e6;
             --dark-gray: #495057;
             --white: #ffffff;
             --text-color: #333;
+            --report-text-color: #212529; /* Darker for report readability */
             --border-radius-sm: 6px;
             --border-radius-md: 8px;
             --border-radius-lg: 12px;
@@ -20,160 +28,120 @@
             --box-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
             --transition-speed: 0.4s;
             --transition-easing: ease-in-out;
+            --highlight-finding-color: #dc3545; /* Red for findings/conditions */
+            --highlight-device-color: #0d6efd; /* Blue for devices/tubes */
         }
 
         /* --- General Body & Container Styling --- */
         body {
             padding-top: 20px;
             padding-bottom: 30px;
-            /* Subtle Gradient Background (Bonus) */
-            background: linear-gradient(135deg, #eef2f7 0%, #f0f5ff 100%);
+            background: linear-gradient(135deg, #eef2f7 0%, #f0f5ff 100%); /* Soft background gradient */
             color: var(--text-color);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            overflow-x: hidden; /* Prevent horizontal scroll during animations */
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; /* UPDATED Font */
+            overflow-x: hidden;
         }
 
         .container-fluid {
             max-width: 1400px;
-            background-color: rgba(255, 255, 255, 0.8); /* Glassmorphism hint (Bonus) */
-            backdrop-filter: blur(8px); /* Glassmorphism blur (Bonus) */
-            -webkit-backdrop-filter: blur(8px); /* Safari */
-            padding: 30px; /* Increased padding */
+            background-color: rgba(255, 255, 255, 0.85); /* Slightly less transparent */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 35px; /* Increased padding */
             border-radius: var(--border-radius-lg);
             box-shadow: var(--box-shadow-soft);
-            border: 1px solid rgba(255, 255, 255, 0.2); /* Subtle border for glass effect */
+            border: 1px solid rgba(255, 255, 255, 0.25);
         }
 
         h1 {
             color: var(--primary-color);
-            font-weight: 600;
-            margin-bottom: 2rem !important; /* Increased margin */
-            font-size: 2rem; /* Slightly larger title */
+            font-weight: 700; /* Bolder Title */
+            margin-bottom: 2.2rem !important; /* Increased margin */
+            font-size: 2.1rem; /* Slightly larger title */
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
         }
         h2 {
-            font-size: 1.4rem; /* Slightly larger headings */
+            font-size: 1.5rem; /* Larger headings */
+            font-weight: 500; /* Medium weight */
             color: var(--dark-gray);
-            margin-bottom: 18px;
-            padding-bottom: 8px;
-            border-bottom: 2px solid var(--primary-color);
+            margin-bottom: 20px; /* Increased */
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--primary-color); /* Thicker border */
             display: inline-block;
         }
 
         /* --- Main Layout --- */
         .main-row {
-            margin-top: 25px;
+            margin-top: 30px;
         }
 
         /* --- Chat Interface Section (Left Column) --- */
         #chat-column {
             border-right: 1px solid var(--medium-gray);
-            padding-right: 30px; /* Increased padding */
+            padding-right: 35px; /* Increased padding */
             display: flex;
             flex-direction: column;
-            height: calc(85vh - 100px); /* Adjust height */
+            height: calc(85vh - 110px); /* Adjust height */
             min-height: 500px;
-            transition: opacity 0.5s ease, filter 0.5s ease; /* Smooth disable */
+            transition: opacity 0.5s ease, filter 0.5s ease;
         }
-
         #chat-container {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            background-color: #fdfdff; /* Slightly off-white */
+            background-color: #fdfdff;
             border: 1px solid var(--medium-gray);
             border-radius: var(--border-radius-md);
             padding: 20px;
             overflow: hidden;
             box-shadow: inset 0 1px 4px rgba(0,0,0,0.04);
         }
-         /* Conditional display based on report generation */
         #chat-column.disabled {
             opacity: 0.5;
             filter: grayscale(50%);
-            pointer-events: none; /* Disable interaction */
+            pointer-events: none;
         }
-        #chat-column.disabled #chat-placeholder {
-            display: block;
-        }
+        #chat-column.disabled #chat-placeholder { display: block; }
         #chat-placeholder {
-             display: none;
-             text-align: center;
-             padding: 60px 15px;
-             color: #888;
-             font-style: italic;
-             font-size: 0.9rem;
-             align-self: center; /* Center vertically */
-             margin-top: auto;
-             margin-bottom: auto;
+             display: none; text-align: center; padding: 60px 15px;
+             color: #888; font-style: italic; font-size: 0.9rem;
+             align-self: center; margin-top: auto; margin-bottom: auto;
         }
-
         #chat-messages {
-            flex-grow: 1;
-            overflow-y: auto;
-            margin-bottom: 15px;
-            padding-right: 10px; /* Space for scrollbar */
-            scrollbar-width: thin; /* Firefox */
-            scrollbar-color: var(--primary-color) #f0f0f0; /* Firefox */
+            flex-grow: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 10px;
+            scrollbar-width: thin; scrollbar-color: var(--primary-color) #f0f0f0;
         }
-        /* Webkit Scrollbar */
         #chat-messages::-webkit-scrollbar { width: 6px; }
         #chat-messages::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 3px;}
         #chat-messages::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 3px; border: 1px solid #f0f0f0;}
 
-
-        .chat-message {
-            margin-bottom: 15px; /* Increased spacing */
-            padding: 10px 15px; /* Increased padding */
-            border-radius: var(--border-radius-lg);
-            max-width: 85%;
-            word-wrap: break-word;
-            line-height: 1.5;
+        .chat-message { /* Existing Bubble Style */
+            margin-bottom: 15px; padding: 12px 18px; /* Slightly larger padding */
+            border-radius: var(--border-radius-lg); max-width: 85%;
+            word-wrap: break-word; line-height: 1.55; /* Increased line height */
             box-shadow: 0 2px 5px rgba(0,0,0,0.06);
         }
-
         .user-message {
-            background-color: #dbeafe; /* Lighter blue */
-            margin-left: auto;
-            border-bottom-right-radius: var(--border-radius-sm); /* Adjusted bubble */
-            text-align: right;
+            background-color: #dbeafe; margin-left: auto;
+            border-bottom-right-radius: var(--border-radius-sm); text-align: right;
         }
-
         .bot-message {
-            background-color: #e9ecef; /* Lighter gray */
-            margin-right: auto;
-            border-bottom-left-radius: var(--border-radius-sm); /* Adjusted bubble */
-            text-align: left;
+            background-color: #e9ecef; margin-right: auto;
+            border-bottom-left-radius: var(--border-radius-sm); text-align: left;
         }
-        .bot-message.thinking { /* Enhanced thinking */
-             font-style: italic;
-             color: #6c757d;
-             display: flex;
-             align-items: center;
+        .bot-message.thinking {
+             font-style: italic; color: #6c757d; display: flex; align-items: center;
         }
         .bot-message.thinking::before {
-            content: '';
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 2px solid var(--primary-color);
-            border-top-color: transparent;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-right: 8px;
+            content: ''; display: inline-block; width: 16px; height: 16px;
+            border: 2px solid var(--primary-color); border-top-color: transparent;
+            border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-
-        #chat-form {
-            display: flex;
-            margin-top: auto;
-            gap: 10px;
-        }
+        #chat-form { display: flex; margin-top: auto; gap: 10px; }
         #chat-input {
-            flex-grow: 1;
-            border-radius: 25px; /* More rounded */
-            padding: 10px 18px; /* Increased padding */
+            flex-grow: 1; border-radius: 25px; padding: 10px 18px;
             border: 1px solid var(--medium-gray);
             transition: box-shadow var(--transition-speed) var(--transition-easing);
         }
@@ -181,222 +149,229 @@
              box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.25);
              border-color: var(--primary-color);
         }
-
         #send-button {
-            border-radius: 50%;
-            width: 45px; /* Slightly larger */
-            height: 45px;
-            padding: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
+            border-radius: 50%; width: 45px; height: 45px; padding: 0;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
             transition: background-color var(--transition-speed) var(--transition-easing), transform var(--transition-speed) var(--transition-easing);
         }
         #send-button:hover { transform: scale(1.1); }
         #send-button svg { width: 20px; height: 20px; fill: white; }
 
+        /* --- NEW: Example Questions Styling --- */
+        #example-questions {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--medium-gray);
+            text-align: left;
+        }
+        #example-questions small {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+            color: var(--dark-gray);
+            font-weight: 500;
+        }
+        .suggestion-btn {
+            background-color: #f0f2f5;
+            border: 1px solid #d5d9de;
+            color: var(--primary-color);
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 15px;
+            margin-right: 6px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            text-decoration: none; /* If using <a> tags */
+            display: inline-block; /* If using <a> tags */
+        }
+        .suggestion-btn:hover {
+            background-color: #e2e6ea;
+            border-color: #c8ced3;
+            color: #0a58ca;
+        }
+
 
         /* --- Content Section (Right Column) --- */
         #content-column {
-            padding-left: 30px; /* Increased padding */
-            max-height: calc(85vh - 100px); /* Match chat height */
-            overflow-y: auto;
-            scrollbar-width: thin; /* Firefox */
-            scrollbar-color: var(--primary-color) #f0f0f0; /* Firefox */
-            position: relative; /* Needed for zoom panel positioning */
+            padding-left: 35px; /* Increased padding */
+            max-height: calc(85vh - 110px); /* Match chat height */
+            overflow-y: auto; scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) #f0f0f0;
+            position: relative;
         }
-        /* Webkit Scrollbar */
         #content-column::-webkit-scrollbar { width: 6px; }
         #content-column::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 3px;}
         #content-column::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 3px; border: 1px solid #f0f0f0;}
 
-
         /* --- Upload Form Styling & Animation --- */
-        #upload-form {
-            margin-bottom: 30px;
-            padding: 25px; /* Increased padding */
-            border: 1px solid var(--medium-gray);
-            border-radius: var(--border-radius-md);
-            background-color: #fdfdff; /* Slightly off-white */
+        #form-wrapper {
             transition: opacity var(--transition-speed) var(--transition-easing),
                         transform var(--transition-speed) var(--transition-easing),
-                        max-height 0.6s var(--transition-easing), /* Slower height */
+                        max-height 0.6s var(--transition-easing),
                         margin-bottom var(--transition-speed) var(--transition-easing),
-                        padding var(--transition-speed) var(--transition-easing),
+                        padding-top var(--transition-speed) var(--transition-easing),
+                        padding-bottom var(--transition-speed) var(--transition-easing),
                         border var(--transition-speed) var(--transition-easing);
-            overflow: hidden; /* Crucial for max-height transition */
-            max-height: 600px; /* Estimate max height needed, adjust if necessary */
-            transform: translateY(0);
-            opacity: 1;
+            overflow: hidden; max-height: 800px; transform: translateY(0);
+            opacity: 1; margin-bottom: 30px; padding-top: 0; padding-bottom: 0; border: none;
         }
-        .form-label { font-weight: 500; margin-bottom: 0.5rem; }
+        #upload-form {
+            padding: 30px; /* Increased padding */
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius-md);
+            background-color: #fdfdff; margin-bottom: 0;
+        }
+        .form-label { font-weight: 500; margin-bottom: 0.6rem; } /* Slightly more spacing */
         .form-control-sm, .form-select-sm {
-            padding: 0.4rem 0.8rem; /* Adjust padding */
-            font-size: 0.9rem;
+            padding: 0.45rem 0.9rem; font-size: 0.9rem; /* Slightly larger padding */
             border-radius: var(--border-radius-sm);
         }
         .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            padding: 10px 20px; /* Increased padding */
-            font-size: 1rem; /* Standard size */
+            background-color: var(--primary-color); border-color: var(--primary-color);
+            padding: 12px 22px; /* Increased padding */
+            font-size: 1rem; font-weight: 500; /* Medium weight */
             border-radius: var(--border-radius-sm);
             transition: background-color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing), box-shadow var(--transition-speed) var(--transition-easing);
         }
         .btn-primary:hover {
-            background-color: #0b5ed7;
-            border-color: #0a58ca;
+            background-color: #0b5ed7; border-color: #0a58ca;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
         .spinner-border { display: none; margin-right: 8px; width: 1.1rem; height: 1.1rem; }
-        .processing .spinner-border { display: inline-block; }
-        .processing button[type="submit"] { cursor: not-allowed; opacity: 0.7; }
+        #upload-form.processing .spinner-border { display: inline-block; }
+        #upload-form.processing button[type="submit"] { cursor: not-allowed; opacity: 0.7; }
 
         /* --- State When Results are Loaded --- */
-        body.results-loaded #upload-form {
-            opacity: 0;
-            transform: translateY(-20px) scale(0.95); /* Slide up and shrink slightly */
-            max-height: 0;
-            padding-top: 0;
-            padding-bottom: 0;
-            margin-bottom: 0;
-            border-width: 0;
-            pointer-events: none; /* Prevent interaction during/after animation */
+        body.results-loaded #form-wrapper {
+            opacity: 0; transform: translateY(-20px) scale(0.95);
+            max-height: 0; padding-top: 0; padding-bottom: 0;
+            margin-top: 0; margin-bottom: 0; border-width: 0;
+            pointer-events: none;
         }
 
         /* --- Result Area Styling & Animation --- */
-        .result-area {
-            margin-top: 0; /* Was 20px, now handled by form collapse */
+                /* --- Result Area Styling & Animation --- */
+                .result-area {
+            margin-top: 0; /* No margin needed as form wrapper collapses */
             opacity: 0; /* Initially hidden */
             transform: translateY(20px); /* Start slightly lower */
             transition: opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s; /* Fade/slide in *after* form starts fading out */
+            text-align: center; /* <<< ADD THIS LINE TO CENTER INLINE/INLINE-BLOCK CHILDREN */
         }
         body.results-loaded .result-area {
             opacity: 1;
             transform: translateY(0);
         }
 
-        .img-preview-container, .report-box-container { margin-bottom: 25px; }
-
         /* --- Image Preview & Zoom Styling --- */
-        #image-result-area { /* Container for positioning zoom panel */
-             position: relative;
-        }
-
+        #image-result-area { position: relative; }
         .img-preview {
-            max-width: 100%;
-            height: auto;
-            border: 1px solid var(--medium-gray);
-            border-radius: var(--border-radius-md);
-            box-shadow: var(--box-shadow-soft);
-            display: block; /* Prevent extra space below image */
-            transition: box-shadow var(--transition-speed) var(--transition-easing);
-            cursor: crosshair; /* Indicate zoom capability */
+            max-width: 100%; height: auto; border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius-md); box-shadow: var(--box-shadow-soft);
+            display: block; transition: box-shadow var(--transition-speed) var(--transition-easing);
+            cursor: crosshair; /* Retain zoom cursor */
         }
-        .img-preview:hover {
-            box-shadow: var(--box-shadow-hover);
+        .img-preview:hover { box-shadow: var(--box-shadow-hover); }
+        #zoom-preview-panel { /* Existing zoom panel */
+            position: absolute; width: 250px; height: 250px;
+            background-color: var(--white); border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius-md); box-shadow: var(--box-shadow-hover);
+            background-repeat: no-repeat; background-size: 0 0; background-position: 0 0;
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.2s ease-out, visibility 0s linear 0.2s;
+            pointer-events: none; z-index: 100; overflow: hidden;
+            top: 0; left: calc(100% + 15px);
         }
-
-        #zoom-preview-panel {
-            position: absolute; /* Position relative to #image-result-area */
-            width: 250px; /* Size of the zoom panel */
-            height: 250px;
-            background-color: var(--white);
-            border: 2px solid var(--primary-color);
-            border-radius: var(--border-radius-md);
-            box-shadow: var(--box-shadow-hover);
-            background-repeat: no-repeat;
-            background-size: 0 0; /* Will be set by JS */
-            background-position: 0 0; /* Will be set by JS */
-            opacity: 0;
-            visibility: hidden; /* Use visibility for better performance */
-            transition: opacity 0.2s ease-out, visibility 0s linear 0.2s; /* Fast fade, delay hiding */
-            pointer-events: none; /* Don't capture mouse events */
-            z-index: 100; /* Ensure it's on top */
-            overflow: hidden; /* Hide parts of image outside panel */
-             /* Position it to the right of the image area by default */
-            top: 0;
-            left: calc(100% + 15px); /* Place right next to the image container + gap */
+        @media (max-width: 1200px) {
+             #zoom-preview-panel { left: auto; right: calc(100% + 15px); }
         }
-
-        /* Adjust zoom panel position if it goes off-screen (basic example) */
-        /* More robust positioning might require JS calculations based on viewport */
-        /* This example just moves it left if space is tight, assuming LTR */
-        @media (max-width: 1200px) { /* Example breakpoint */
-             #zoom-preview-panel {
-                 left: auto;
-                 right: calc(100% + 15px); /* Try placing it to the left */
-             }
-        }
-         @media (max-width: 767px) { /* On smaller screens, hide zoom or reposition */
-             #zoom-preview-panel {
-                 display: none; /* Simplest solution */
-             }
-             .img-preview { cursor: default; } /* Remove zoom cursor */
+         @media (max-width: 767px) {
+             #zoom-preview-panel { display: none; }
+             .img-preview { cursor: default; }
          }
 
         /* --- Report Box Styling --- */
         .report-box {
-            border: 1px solid var(--medium-gray);
-            padding: 20px;
-            background-color: #fdfdff; /* Slightly off-white */
-            border-radius: var(--border-radius-md);
-            min-height: 250px; /* Ensure decent height */
-            font-family: 'Consolas', 'Courier New', monospace; /* Monospace font */
-            font-size: 0.9rem;
-            color: #212529;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-            box-shadow: var(--box-shadow-soft);
-            line-height: 1.6;
+            border: 1px solid var(--medium-gray); padding: 25px; /* Increased padding */
+            background-color: #fdfdff; border-radius: var(--border-radius-md);
+            min-height: 250px;
+            font-family: 'Roboto', 'Consolas', 'Courier New', monospace; /* Use Roboto first, fallback to mono */
+            font-size: 0.95rem; /* Slightly larger report font */
+            color: var(--report-text-color); white-space: pre-wrap; word-wrap: break-word;
+            box-shadow: var(--box-shadow-soft); line-height: 1.7; /* Increased line height */
         }
+
+        /* --- NEW: Medical Term Highlighting (Requires Backend Span Insertion) --- */
+        .medical-term-finding {
+            font-weight: 600; /* Bold */
+            color: var(--highlight-finding-color); /* Red */
+            /* background-color: #fdeaea; /* Optional light red background */
+            /* padding: 0 2px; */
+            /* border-radius: 3px; */
+        }
+        .medical-term-device {
+            font-weight: 600; /* Bold */
+            color: var(--highlight-device-color); /* Blue */
+            /* background-color: #e7f1ff; /* Optional light blue background */
+            /* padding: 0 2px; */
+            /* border-radius: 3px; */
+        }
+
+        /* --- NEW: Medical Icon Styling (Requires Backend <i> Insertion) --- */
+        .medical-icon {
+            margin-left: 6px;
+            color: var(--dark-gray); /* Subtle icon color */
+            font-size: 0.9em; /* Slightly smaller than text */
+            cursor: help; /* Indicate tooltip */
+            vertical-align: middle; /* Align nicely with text */
+        }
+        .tooltip-inner { /* Style Bootstrap Tooltip */
+           background-color: var(--dark-gray);
+           color: var(--white);
+           font-size: 0.8rem;
+        }
+         .tooltip.bs-tooltip-auto[data-popper-placement^=top] .tooltip-arrow::before,
+         .tooltip.bs-tooltip-top .tooltip-arrow::before {
+             border-top-color: var(--dark-gray);
+         }
+         /* Add similar rules for bottom, left, right as needed */
+
 
         /* --- Hidden element for report context --- */
         #report-context-data { display: none; }
 
-        /* --- Reset Button (Bonus) --- */
+        /* --- Reset Button --- */
         #reset-button {
-             display: none; /* Hidden by default */
-             margin: 20px auto 0; /* Center it horizontally */
-             opacity: 0;
-             transition: opacity var(--transition-speed) ease-out 0.5s; /* Fade in after results */
-             padding: 8px 18px;
-             font-size: 0.9rem;
-             border-radius: var(--border-radius-sm);
+             display: none; margin: 30px auto 0; /* Increased top margin */
+             opacity: 0; transition: opacity var(--transition-speed) ease-out 0.5s;
+             padding: 10px 20px; /* Match primary button padding */
+             font-size: 0.95rem; border-radius: var(--border-radius-sm);
+             align-items: center; justify-content: center; gap: 8px;
         }
-        body.results-loaded #reset-button {
-             display: block; /* Show when results are loaded */
-             opacity: 1;
-        }
+        body.results-loaded #reset-button { display: inline-flex; opacity: 1; }
+        #reset-button svg { width: 1em; height: 1em; }
+
 
         /* --- Responsive adjustments --- */
-        @media (max-width: 991.98px) { /* Target smaller than lg */
+        @media (max-width: 991.98px) {
             #chat-column {
-                border-right: none;
-                border-bottom: 1px solid var(--medium-gray);
-                padding-right: 0;
-                margin-bottom: 25px;
-                height: 55vh; /* Adjust height */
-                min-height: 400px;
+                border-right: none; border-bottom: 1px solid var(--medium-gray);
+                padding-right: 0; margin-bottom: 30px; /* Increased */
+                height: 60vh; /* Adjusted height */ min-height: 450px;
             }
             #content-column {
-                padding-left: 0;
-                max-height: none;
-                overflow-y: visible;
+                padding-left: 0; max-height: none; overflow-y: visible;
             }
-            .container-fluid { padding: 20px; }
-            h1 { font-size: 1.8rem; }
-            h2 { font-size: 1.3rem; }
-            /* Stack image and report */
+            .container-fluid { padding: 25px; } /* Increased */
+            h1 { font-size: 1.9rem; }
+            h2 { font-size: 1.4rem; }
             .result-area .row > div { width: 100%; }
-             #image-result-area { margin-bottom: 20px; }
+             #image-result-area { margin-bottom: 25px; }
         }
 
          /* Set primary color RGB for focus shadow */
-         body {
-            --primary-color-rgb: 13, 110, 253; /* Default Bootstrap primary blue */
-         }
+         body { --primary-color-rgb: 13, 110, 253; }
 
     </style>
 </head>
@@ -433,6 +408,8 @@
                      <div id="chat-placeholder">Generate a report first to enable chat.</div>
                     <div id="chat-messages">
                         <!-- Chat messages will appear here -->
+                        <!-- Example Bot Message: -->
+                        <!-- <div class="chat-message bot-message">Welcome! Ask me about the report findings.</div> -->
                     </div>
                     <form id="chat-form" action="javascript:void(0);">
                         <input type="text" id="chat-input" class="form-control" placeholder="Type your question..." autocomplete="off" {% if not report or not chatbot_available %}disabled{% endif %}>
@@ -440,14 +417,23 @@
                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
                         </button>
                     </form>
+                    <!-- NEW: Example Questions Section -->
+                    <div id="example-questions" {% if not report or not chatbot_available %}style="display: none;"{% endif %}>
+                        <small>Example Questions:</small>
+                        <button class="suggestion-btn">What are the main findings?</button>
+                        <button class="suggestion-btn">Are there any tubes or lines mentioned?</button>
+                        <button class="suggestion-btn">Summarize the impression.</button>
+                        <button class="suggestion-btn">Is the heart size normal?</button>
+                        <!-- Add more suggestions as needed -->
+                    </div>
                 </div>
             </div>
 
             <!-- Content Column (Right - Form, Image, Report) -->
             <div class="col-lg-7" id="content-column">
 
-                <!-- Form Section - Animates Out -->
-                <div id="form-wrapper"> <!-- Wrapper helps with margin/padding animation -->
+                <!-- Form Section Wrapper -->
+                <div id="form-wrapper">
                     <h2>Generate Report</h2>
                     <form id="upload-form" method="post" enctype="multipart/form-data" action="/predict">
                         <div class="mb-3">
@@ -458,7 +444,7 @@
                             <label for="vlmSelect" class="form-label">2. Choose Vision-Language Model:</label>
                             <select class="form-select form-select-sm" id="vlmSelect" name="vlm_choice">
                                 <option value="swin_t5_chexpert" selected>Swin-T5 (CheXpert Trained)</option>
-                                <!-- Add other models here if needed -->
+                                <!-- Add other models here -->
                             </select>
                         </div>
                         <div class="mb-3">
@@ -473,7 +459,7 @@
                 </div>
                 <!-- End Form Section -->
 
-                <!-- Result Section - Animates In -->
+                <!-- Result Section -->
                 {% if report or image_data %}
                 <div class="result-area">
                     <div class="row">
@@ -482,10 +468,9 @@
                         <div class="col-md-6">
                              <div class="img-preview-container" id="image-result-area">
                                 <h2>Uploaded Image:</h2>
-                                <!-- Add id to the image for JS targeting -->
                                 <img id="uploaded-image" src="data:image/jpeg;base64,{{ image_data }}" alt="Uploaded Image" class="img-preview">
-                                <!-- Zoom Preview Panel -->
                                 <div id="zoom-preview-panel"></div>
+                                <!-- Note: Annotations/Overlays would require backend data and complex JS -->
                             </div>
                         </div>
                         {% endif %}
@@ -496,17 +481,24 @@
                             <div class="report-box-container">
                                 <h2>Generated Report:</h2>
                                 <div class="report-box">
-                                    {{ report }}
+                                    {# IMPORTANT: Backend should process the report to add spans/icons #}
+                                    {# Example: "Findings consistent with <span class='medical-term-finding'>pneumonia</span>. An <span class='medical-term-device'>endotracheal tube <i class='fas fa-lungs-tube medical-icon' data-bs-toggle='tooltip' title='Endotracheal Tube'></i></span> is noted." #}
+                                    {{ report | safe }} {# Use |safe ONLY if backend sanitizes output OR you trust the source #}
                                 </div>
-                                <!-- Hidden div to store the report for JS -->
                                 <div id="report-context-data" data-report="{{ report|e }}"></div>
                             </div>
                         </div>
                          {% endif %}
                     </div> <!-- End Result Row -->
 
-                     <!-- Reset Button (Bonus) -->
-                     <button id="reset-button" class="btn btn-outline-secondary">Start Over / New Image</button>
+                     <!-- Reset Button -->
+                     <button id="reset-button" class="btn btn-outline-secondary">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16" aria-hidden="true">
+                           <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                           <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                         </svg>
+                         <span>Start Over / New Image</span>
+                     </button>
 
                 </div> <!-- End Result Area -->
                 {% endif %}
@@ -520,26 +512,30 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
+            // --- Initialize Bootstrap Tooltips (for potential icons) ---
+            // IMPORTANT: Requires backend to add data-bs-toggle="tooltip" to elements
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+
             // --- Form Processing Indicator ---
             const form = document.getElementById('upload-form');
-            const submitButton = form?.querySelector('button[type="submit"]'); // Use optional chaining
+            const submitButton = form?.querySelector('button[type="submit"]');
             const spinner = submitButton?.querySelector('.spinner-border');
 
             if (form && submitButton) {
-                form.addEventListener('submit', function() {
-                    const fileInput = document.getElementById('imageUpload');
-                    if (fileInput.files.length > 0) {
-                        form.classList.add('processing');
-                        submitButton.disabled = true;
+                 form.addEventListener('submit', function() {
+                     const fileInput = document.getElementById('imageUpload');
+                     if (fileInput.files.length > 0) {
+                         form.classList.add('processing');
+                         submitButton.disabled = true;
                          if (spinner) spinner.style.display = 'inline-block';
-                    }
-                    // No need to add 'results-loaded' here, Flask handles it on page reload
-                });
+                     }
+                 });
             }
 
-            // Handle back/forward cache (bfcache) case
              window.addEventListener('pageshow', function(event) {
-                 // event.persisted is true if page is from bfcache
                  if (event.persisted || (window.performance && window.performance.getEntriesByType("navigation")[0].type === 'back_forward')) {
                     if (form && submitButton) {
                         form.classList.remove('processing');
@@ -558,68 +554,60 @@
             const reportContextData = document.getElementById('report-context-data');
             const chatColumn = document.getElementById('chat-column');
             const chatPlaceholder = document.getElementById('chat-placeholder');
+            const exampleQuestionsContainer = document.getElementById('example-questions'); // NEW
 
-            // Use optional chaining and check for element existence
             const reportContext = reportContextData ? reportContextData.dataset.report : null;
-            // Make sure {{ chatbot_available|lower }} resolves to true or false in the template
             const isChatbotAvailable = {{ chatbot_available|lower if chatbot_available is defined else 'false' }};
             const isChatEnabled = reportContext && isChatbotAvailable;
 
-            // Initial chat state setup
              if (chatColumn) {
                  if (!isChatEnabled) {
                      chatColumn.classList.add('disabled');
                      if (chatInput) chatInput.disabled = true;
                      if (sendButton) sendButton.disabled = true;
                      if (chatPlaceholder) chatPlaceholder.style.display = 'block';
+                     if (exampleQuestionsContainer) exampleQuestionsContainer.style.display = 'none'; // Hide examples if disabled
                      console.log("Chat disabled: No report context or chatbot unavailable.");
                  } else {
                      chatColumn.classList.remove('disabled');
                      if (chatInput) chatInput.disabled = false;
                      if (sendButton) sendButton.disabled = false;
-                      if (chatPlaceholder) chatPlaceholder.style.display = 'none';
+                     if (chatPlaceholder) chatPlaceholder.style.display = 'none';
+                     if (exampleQuestionsContainer) exampleQuestionsContainer.style.display = 'block'; // Show examples if enabled
                      console.log("Chat enabled.");
                  }
              }
 
-
-            // Function to add a message to the chat display
             function addChatMessage(message, sender) {
-                 if (!chatMessages) return null; // Exit if chat area doesn't exist
+                 if (!chatMessages) return null;
                 const messageDiv = document.createElement('div');
                 messageDiv.classList.add('chat-message', sender === 'user' ? 'user-message' : 'bot-message');
-                // Sanitize message text before adding (simple example, consider a library for robust sanitization)
+                // Basic text setting (Assume backend sanitizes bot responses if needed)
                 messageDiv.textContent = message;
                 chatMessages.appendChild(messageDiv);
-                // Scroll to the bottom
                 chatMessages.scrollTop = chatMessages.scrollHeight;
                 return messageDiv;
             }
 
-            // Handle chat form submission
             if (chatForm && isChatEnabled) {
                 chatForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
-                    if (!chatInput || !reportContext) return; // Check elements exist
+                    if (!chatInput || !reportContext) return;
 
                     const question = chatInput.value.trim();
                     if (!question) return;
 
-                    // 1. Display user's message
                     addChatMessage(question, 'user');
                     chatInput.value = '';
                     chatInput.disabled = true;
                     if (sendButton) sendButton.disabled = true;
 
-                    // 2. Display temporary "thinking" message
-                    const thinkingMessage = addChatMessage('', 'bot'); // Add empty message first
+                    const thinkingMessage = addChatMessage('', 'bot');
                      if (thinkingMessage) {
                          thinkingMessage.classList.add('thinking');
-                         thinkingMessage.textContent = ' Thinking...'; // Set text after adding class
+                         thinkingMessage.textContent = ' Thinking...';
                      }
 
-
-                    // 3. Send data to backend
                     try {
                         const response = await fetch('/chat', {
                             method: 'POST',
@@ -632,149 +620,142 @@
                         if (!response.ok) {
                             const errorData = await response.json().catch(() => ({ error: 'Unknown server error' }));
                             console.error('Chat API Error:', response.status, errorData);
-                            if (thinkingMessage) {
-                                thinkingMessage.textContent = `Error: ${errorData.error || response.statusText}`;
-                                thinkingMessage.style.color = 'red';
-                            } else {
-                                 addChatMessage(`Error: ${errorData.error || response.statusText}`, 'bot').style.color = 'red';
-                            }
+                            const errorMsg = `Error: ${errorData.error || response.statusText}`;
+                             if (thinkingMessage) { thinkingMessage.textContent = errorMsg; thinkingMessage.style.color = 'red'; }
+                             else { addChatMessage(errorMsg, 'bot').style.color = 'red'; }
                         } else {
                             const data = await response.json();
                             const answer = data.answer || "Received empty response.";
-                             if (thinkingMessage) {
-                                 thinkingMessage.textContent = answer; // Update existing message
-                             } else {
-                                 addChatMessage(answer, 'bot'); // Add new if thinking failed
-                             }
+                            // Update thinking message or add new if it failed
+                             if (thinkingMessage) { thinkingMessage.textContent = answer; }
+                             else { addChatMessage(answer, 'bot'); }
                         }
-
                     } catch (error) {
                         console.error('Fetch error:', error);
-                         if (thinkingMessage) {
+                        const errorMsg = 'Error connecting to the chat service.';
+                        if (thinkingMessage) {
                             thinkingMessage.classList.remove('thinking');
-                            thinkingMessage.textContent = 'Error connecting to the chat service.';
+                            thinkingMessage.textContent = errorMsg;
                             thinkingMessage.style.color = 'red';
-                         } else {
-                              addChatMessage('Error connecting to the chat service.', 'bot').style.color = 'red';
-                         }
+                        } else {
+                            addChatMessage(errorMsg, 'bot').style.color = 'red';
+                        }
                     } finally {
-                        // Re-enable input
                         if(chatInput) chatInput.disabled = false;
                         if(sendButton) sendButton.disabled = false;
                         if(chatInput) chatInput.focus();
-                        // Ensure scroll is still at bottom
                         if(chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
                     }
                 });
             } else if (chatForm && !isChatEnabled) {
-                 // Optional: Add visual cue if trying to submit disabled form
                  chatForm.addEventListener('submit', (e) => e.preventDefault());
+            }
+
+            // --- NEW: Example Question Click Handler ---
+            if (exampleQuestionsContainer && chatInput && chatForm) {
+                exampleQuestionsContainer.addEventListener('click', (e) => {
+                    // Check if a suggestion button was clicked
+                    if (e.target && e.target.classList.contains('suggestion-btn')) {
+                         e.preventDefault(); // Prevent default if it's an <a> tag
+                        const questionText = e.target.textContent || e.target.innerText;
+                        if (questionText && !chatInput.disabled) {
+                            chatInput.value = questionText;
+                            chatInput.focus();
+                            // Optional: Automatically submit after clicking suggestion
+                            // chatForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                        }
+                    }
+                });
             }
 
 
             // --- Image Hover Zoom Functionality ---
             const imagePreview = document.getElementById('uploaded-image');
             const zoomPanel = document.getElementById('zoom-preview-panel');
-            const imageContainer = document.getElementById('image-result-area'); // Parent container
+            const imageContainer = document.getElementById('image-result-area');
 
             if (imagePreview && zoomPanel && imageContainer) {
-                 // Use naturalWidth/Height once the image is loaded
                  let naturalWidth = 0;
                  let naturalHeight = 0;
-                 const zoomLevel = 1; // Adjust zoom magnification level
+                 const zoomLevel = 1; // Magnification level
 
                  const updateImageDimensions = () => {
                      naturalWidth = imagePreview.naturalWidth;
                      naturalHeight = imagePreview.naturalHeight;
-                     // Set background size for zoom panel based on natural dimensions and zoom level
-                     zoomPanel.style.backgroundSize = `${naturalWidth * zoomLevel}px ${naturalHeight * zoomLevel}px`;
+                     if (naturalWidth > 0 && naturalHeight > 0) {
+                         zoomPanel.style.backgroundSize = `${naturalWidth * zoomLevel}px ${naturalHeight * zoomLevel}px`;
+                     } else {
+                          console.error("Image natural dimensions are zero.");
+                          // Optionally disable zoom if image fails to load properly
+                     }
                  };
 
-                 // Ensure dimensions are read after image is loaded
-                 if (imagePreview.complete) {
+                 if (imagePreview.complete && imagePreview.naturalWidth > 0) {
                      updateImageDimensions();
                  } else {
                      imagePreview.onload = updateImageDimensions;
+                     imagePreview.onerror = () => { console.error("Image failed to load."); naturalWidth=0; naturalHeight=0; };
                  }
 
 
                 imageContainer.addEventListener('mouseenter', () => {
-                     if (naturalWidth > 0) { // Only activate if image loaded
+                     if (naturalWidth > 0) {
                         zoomPanel.style.backgroundImage = `url('${imagePreview.src}')`;
                         zoomPanel.style.opacity = '1';
                         zoomPanel.style.visibility = 'visible';
-                        zoomPanel.style.transition = 'opacity 0.2s ease-out, visibility 0s linear 0s'; // Show immediately
+                        zoomPanel.style.transition = 'opacity 0.2s ease-out, visibility 0s linear 0s';
                      }
                 });
 
                 imageContainer.addEventListener('mousemove', (e) => {
-                    if (naturalWidth === 0) return; // Don't process if image not loaded
+                    if (naturalWidth === 0) return;
 
-                    const rect = imagePreview.getBoundingClientRect(); // Position relative to viewport
-                    const containerRect = imageContainer.getBoundingClientRect(); // Container position
-
-                    // Calculate cursor position relative to the image element itself
+                    const rect = imagePreview.getBoundingClientRect();
+                    const containerRect = imageContainer.getBoundingClientRect();
                     const x = e.clientX - rect.left;
                     const y = e.clientY - rect.top;
-
-                    // Get displayed dimensions of the image
                     const displayWidth = rect.width;
                     const displayHeight = rect.height;
 
-                    // Calculate cursor position as a percentage of the displayed image size
+                    if (displayWidth <= 0 || displayHeight <= 0) return;
+
                     const percX = Math.max(0, Math.min(1, x / displayWidth));
                     const percY = Math.max(0, Math.min(1, y / displayHeight));
-
-                    // Calculate the background position in the zoom panel
-                    // The background is larger (by zoomLevel), so we pan across it
-                    // Center the zoomed area around the cursor point
                     const bgX = -(percX * (naturalWidth * zoomLevel - zoomPanel.offsetWidth));
                     const bgY = -(percY * (naturalHeight * zoomLevel - zoomPanel.offsetHeight));
 
                     zoomPanel.style.backgroundPosition = `${bgX}px ${bgY}px`;
 
-                    // --- Dynamic Positioning of Zoom Panel ---
-                    // Attempt to position right first, then left if not enough space
-                    const gap = 15; // Space between image and zoom panel
+                    // Dynamic Positioning
+                    const gap = 15;
                     const spaceRight = window.innerWidth - containerRect.right - gap;
                     const spaceLeft = containerRect.left - gap;
 
                     if (spaceRight >= zoomPanel.offsetWidth) {
-                        // Position to the right
                         zoomPanel.style.left = `${containerRect.width + gap}px`;
                         zoomPanel.style.right = 'auto';
                     } else if (spaceLeft >= zoomPanel.offsetWidth) {
-                        // Position to the left
                         zoomPanel.style.left = 'auto';
                         zoomPanel.style.right = `${containerRect.width + gap}px`;
                     } else {
-                        // Default (or maybe place below/above if desperate)
                         zoomPanel.style.left = `${containerRect.width + gap}px`;
                         zoomPanel.style.right = 'auto';
                     }
-                     // Keep zoom panel vertically aligned with container top for simplicity
                      zoomPanel.style.top = '0px';
-
                 });
 
                 imageContainer.addEventListener('mouseleave', () => {
                     zoomPanel.style.opacity = '0';
                     zoomPanel.style.visibility = 'hidden';
-                     zoomPanel.style.transition = 'opacity 0.2s ease-out, visibility 0s linear 0.2s'; // Hide after delay
+                    zoomPanel.style.transition = 'opacity 0.2s ease-out, visibility 0s linear 0.2s';
                 });
             }
 
-            // --- Reset Button Functionality (Bonus) ---
+            // --- Reset Button Functionality ---
             const resetButton = document.getElementById('reset-button');
              if(resetButton) {
                  resetButton.addEventListener('click', () => {
-                     // Optional: Add a fade-out animation to the whole page before redirecting
-                     // document.body.style.transition = 'opacity 0.3s ease-out';
-                     // document.body.style.opacity = '0';
-                     // setTimeout(() => { window.location.href = '/'; }, 300);
-
-                     // Simple redirect:
-                     window.location.href = '/'; // Redirect to the root (or clear state URL)
+                     window.location.href = '/';
                  });
              }
 
