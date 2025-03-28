@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Image Report Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* --- General Body & Container Styling --- */
+        body {
+            padding-top: 30px;
+            padding-bottom: 30px;
+            background-color: #f0f2f5; /* Light gray background for contrast */
+            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+
+        .container {
+            max-width: 960px; /* Wider container for side-by-side view */
+            background-color: #ffffff; /* White background for the main content */
+            padding: 35px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            color: #0d6efd; /* Primary blue color for the main heading */
+            font-weight: 600;
+            margin-bottom: 1.8rem !important; /* More space below title */
+        }
+
+        /* --- Form Styling --- */
+        #upload-form {
+            margin-bottom: 40px; /* Space below the form before results */
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            background-color: #fafafa;
+        }
+
+        .form-label {
+            font-weight: 500;
+        }
+
+        /* --- Button & Spinner --- */
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            padding: 10px 20px;
+            font-size: 1rem;
+            transition: background-color 0.2s ease;
+        }
+        .btn-primary:hover {
+             background-color: #0b5ed7;
+             border-color: #0a58ca;
+        }
+
+        .spinner-border {
+            display: none; /* Initially hidden */
+            margin-right: 5px;
+            width: 1rem; /* Match button text size better */
+            height: 1rem;
+        }
+        .processing .spinner-border {
+            display: inline-block;
+        }
+        .processing button[type="submit"] {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        /* --- Result Section (Image and Report) --- */
+        .result-section {
+            margin-top: 30px; /* Consistent spacing */
+            padding-top: 20px;
+            border-top: 1px solid #eee; /* Subtle separator */
+        }
+
+        /* Style the headings within the result section */
+        .result-section h2 {
+            font-size: 1.4rem;
+            color: #495057; /* Dark gray */
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #0d6efd; /* Highlight under heading */
+            display: inline-block; /* Make border only width of text */
+        }
+
+        /* --- Image Preview Styling --- */
+        .img-preview-container { /* Added container for potential centering/padding */
+             padding-right: 15px; /* Space between image and report column */
+        }
+        .img-preview {
+            max-width: 100%;
+            height: auto; /* Maintain aspect ratio */
+            border: 1px solid #dee2e6; /* Bootstrap's light gray border */
+            border-radius: 6px; /* Slightly rounded corners */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07); /* Subtle shadow */
+            margin-bottom: 15px; /* Space below image on smaller screens */
+        }
+
+        /* --- Report Box Styling --- */
+        .report-box-container { /* Added container for potential centering/padding */
+             padding-left: 15px; /* Space between image and report column */
+        }
+        .report-box {
+            border: 1px solid #dee2e6; /* Match image border */
+            padding: 20px;
+            background-color: #f8f9fa; /* Bootstrap's light background */
+            border-radius: 6px; /* Match image radius */
+            min-height: 250px; /* Ensure a decent minimum height */
+            font-family: 'Courier New', Courier, monospace; /* Monospace for report text */
+            font-size: 0.9rem;
+            color: #212529; /* Darker text for readability */
+            white-space: pre-wrap; /* Preserve whitespace and newlines */
+            word-wrap: break-word; /* Break long words */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.07); /* Subtle shadow */
+            line-height: 1.6; /* Improve readability */
+        }
+
+        /* Responsive adjustments for smaller screens */
+        @media (max-width: 767.98px) { /* Target devices smaller than md breakpoint */
+             .img-preview-container, .report-box-container {
+                  padding-left: 0;
+                  padding-right: 0;
+             }
+             .report-box {
+                  margin-top: 20px; /* Add space when stacked */
+             }
+             .container {
+                 padding: 20px;
+             }
+             h1 {
+                 font-size: 1.8rem;
+             }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4 text-center">Image Report Generator</h1>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <!-- Form Section -->
+        <form id="upload-form" method="post" enctype="multipart/form-data" action="/predict">
+            <div class="mb-3">
+                <label for="imageUpload" class="form-label">Upload Chest X-Ray Image:</label>
+                <input class="form-control" type="file" id="imageUpload" name="image" accept="image/png, image/jpeg, image/jpg" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="vlmSelect" class="form-label">Choose Vision-Language Model:</label>
+                <select class="form-select" id="vlmSelect" name="vlm_choice">
+                    <option value="swin_t5_chexpert" selected>Swin-T5 (CheXpert Trained)</option>
+                    <!-- Add more options here later -->
+                </select>
+                <small class="form-text text-muted">Select the model to generate the report.</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="maxLength" class="form-label">Max Report Length (tokens):</label>
+                <input type="number" class="form-control" id="maxLength" name="max_length" value="100" min="10" max="512">
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100"> <!-- Make button full width -->
+                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                 Generate Report
+            </button>
+        </form>
+        <!-- End Form Section -->
+
+        <!-- Result Section - Displayed conditionally via Flask -->
+        {% if report or image_data %}
+        <div class="result-section">
+            <div class="row">
+                <!-- Image Column -->
+                {% if image_data %}
+                <div class="col-md-6">
+                     <div class="img-preview-container">
+                        <h2>Uploaded Image:</h2>
+                        <img src="data:image/jpeg;base64,{{ image_data }}" alt="Uploaded Image" class="img-preview">
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Report Column -->
+                {% if report %}
+                <div class="col-md-6">
+                    <div class="report-box-container">
+                        <h2>Generated Report:</h2>
+                        <div class="report-box">
+                            {{ report }}
+                        </div>
+                    </div>
+                </div>
+                 {% endif %}
+            </div> <!-- End Row -->
+        </div> <!-- End Result Section -->
+        {% endif %}
+        <!-- End Result Section -->
+
+    </div> <!-- End Container -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const form = document.getElementById('upload-form');
+        const submitButton = form.querySelector('button[type="submit"]');
+        const spinner = submitButton.querySelector('.spinner-border');
+
+        form.addEventListener('submit', function() {
+            // Check if file input has a file selected
+            const fileInput = document.getElementById('imageUpload');
+            if (fileInput.files.length > 0) {
+                form.classList.add('processing');
+                submitButton.disabled = true;
+                 // Make sure spinner is visible
+                 if (spinner) {
+                      spinner.style.display = 'inline-block';
+                 }
+            }
+            // If no file is selected, HTML5 'required' attribute should prevent submission,
+            // but this is an extra JS guard.
+        });
+
+        // Optional: Reset loading state if navigating back (using browser back button)
+        window.addEventListener('pageshow', function(event) {
+             // event.persisted is true if page is loaded from cache (bfcache)
+             if (event.persisted || (window.performance && window.performance.navigation.type == 2)) {
+                form.classList.remove('processing');
+                submitButton.disabled = false;
+                 if (spinner) {
+                      spinner.style.display = 'none';
+                 }
+             }
+        });
+    </script>
+
+</body>
+</html>

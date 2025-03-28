@@ -1,0 +1,7 @@
+Flask>=2.0
+torch>=1.8
+torchvision>=0.9
+transformers>=4.10
+Pillow>=8.0
+sentencepiece>=0.1.90 # Often needed by T5Tokenizer
+tqdm # Was used in original script, optional for webapp but good practice if model loading is slow
