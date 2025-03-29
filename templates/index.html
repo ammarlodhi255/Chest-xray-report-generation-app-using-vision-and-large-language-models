@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Medical Image Report & Chat</title>
+    <title>Chest X-ray Report Generation Application Via VLM and LLM</title>
     <!-- Google Font: Roboto -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -372,13 +372,80 @@
 
          /* Set primary color RGB for focus shadow */
          body { --primary-color-rgb: 13, 110, 253; }
+        
+         /* --- NEW: Patient Info Section Styling --- */
+        #patient-info-section {
+            text-align: center;
+            margin-bottom: 25px; /* Space below patient info */
+            padding-bottom: 15px; /* Space below the text */
+            border-bottom: 1px solid var(--medium-gray); /* Separator line */
+        }
+        #patient-info-section h3 {
+            font-size: 1.25rem; /* Slightly smaller heading */
+            font-weight: 500;
+            color: var(--dark-gray);
+            margin-bottom: 10px; /* Space between heading and data */
+            border-bottom: none; /* Remove the underline from general h2 style */
+            display: inline-block; /* Keep centered */
+        }
+        #patient-info-data {
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+         #patient-info-data span {
+            margin: 0 8px; /* Spacing around the separators */
+            color: var(--medium-gray); /* Make separators lighter */
+         }
+         #patient-info-data strong {
+             font-weight: 500; /* Slightly bolder labels */
+             color: var(--dark-gray);
+         }
 
+        /* --- Adjusted Result Area Styling --- */
+        .result-area {
+            margin-top: 0;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s;
+            /* text-align: center; --- REMOVE this if you want columns aligned left/right */
+            /* The patient info section handles its own centering */
+        }
+        body.results-loaded .result-area {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+         /* Ensure result columns take appropriate space */
+         .result-area .row .col-md-6 {
+             /* text-align: left; /* Align content within columns to the left */
+             /* Centering the h2 within the column if desired */
+             display: flex;
+             flex-direction: column;
+             align-items: center; /* Center content horizontally */
+             margin-bottom: 20px; /* Add space between columns on smaller screens */
+         }
+         .result-area .row .col-md-6 h2 {
+             width: 100%; /* Make h2 take full width */
+             text-align: center; /* Center the h2 text */
+         }
+         .img-preview-container, .report-box-container {
+              width: 100%; /* Ensure containers take full width of the column */
+              max-width: 500px; /* Optional: Limit max width */
+         }
+         .img-preview {
+             display: block; /* Keep image block */
+             margin: 0 auto; /* Center image if container is wider */
+             max-width: 100%; /* Ensure it fits */
+         }
+         .report-box {
+             text-align: left; /* Keep report text left-aligned */
+         }
     </style>
 </head>
 <!-- Add 'results-loaded' class server-side if results exist -->
 <body class="{{ 'results-loaded' if report or image_data else '' }}">
     <div class="container-fluid">
-        <h1 class="mb-4 text-center">Medical Image Report & Chat</h1>
+        <h1 class="mb-4 text-center">Chest X-ray Report Generation Application Via VLM and LLM</h1>
 
         <!-- Flash Messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -462,6 +529,23 @@
                 <!-- Result Section -->
                 {% if report or image_data %}
                 <div class="result-area">
+
+                    <!-- ================== NEW: Patient Info Section ================== -->
+                    {% if patient_info %}
+                    <div id="patient-info-section">
+                        <h3>Patient Information</h3>
+                        <p id="patient-info-data">
+                            <strong>View:</strong> {{ patient_info.view | e }}
+                            <span>|</span>
+                            <strong>Age:</strong> {{ patient_info.age | e }}
+                            <span>|</span>
+                            <strong>Gender:</strong> {{ patient_info.gender | e }}
+                            <span>|</span>
+                            <strong>Ethnicity:</strong> {{ patient_info.ethnicity | e }}
+                        </p>
+                    </div>
+                    {% endif %}
+
                     <div class="row">
                         <!-- Image Column -->
                         {% if image_data %}

@@ -231,19 +231,71 @@ app.secret_key = os.urandom(24)
 
 # Load models when the application starts
 print("Loading models on application startup...")
-load_swin_t5_model_components()
-load_llama_model_components() # Load Llama
-print("Model loading complete.")
-
+try:
+    load_swin_t5_model_components()
+    load_llama_model_components() # Load Llama
+    print("Model loading complete.")
+except Exception as e:
+    print(f"FATAL ERROR during model loading: {e}")
+    # Depending on requirements, you might want to exit or continue with limited functionality
+    # exit(1) # Example: Exit if models are critical
 
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+# ---- NEW: Function to Parse Filename ----
+def parse_patient_info(filename):
+    """
+    Parses a filename like '00069-34-Frontal-AP-63.0-Male-White.png'
+    Returns a dictionary with 'view', 'age', 'gender', 'ethnicity'.
+    Returns None if parsing fails.
+    """
+    try:
+        base_name = os.path.splitext(filename)[0]
+        parts = base_name.split('-')
+        # Expected structure based on example: ... - ViewPart1 - ViewPartN - Age - Gender - Ethnicity
+        if len(parts) < 5: # Need at least initial parts, age, gender, ethnicity
+            print(f"Warning: Filename '{filename}' has fewer parts than expected.")
+            return None
+
+        ethnicity = parts[-1]
+        gender = parts[-2]
+        age_str = parts[-3]
+        # Handle potential '.0' in age and convert to int
+        try:
+            age = int(float(age_str))
+        except ValueError:
+            print(f"Warning: Could not parse age '{age_str}' from filename '{filename}'.")
+            return None # Or set age to None/default
+
+        # Assume view is everything between the second part (index 1) and the age part (index -3)
+        view_parts = parts[2:-3]
+        view = '-'.join(view_parts) if view_parts else "Unknown" # Handle cases with missing view
+
+        # Basic validation
+        if gender.lower() not in ['male', 'female', 'other', 'unknown']: # Be flexible
+             print(f"Warning: Unusual gender '{gender}' found in filename '{filename}'.")
+             # Decide whether to return None or keep it
+
+        return {
+            'view': view,
+            'age': age,
+            'gender': gender.capitalize(), # Capitalize for display
+            'ethnicity': ethnicity.capitalize() # Capitalize for display
+        }
+    except IndexError:
+        print(f"Error parsing filename '{filename}': Index out of bounds.")
+        return None
+    except Exception as e:
+        print(f"Error parsing filename '{filename}': {e}")
+        return None
+
+# --- Routes ---
+
 @app.route('/', methods=['GET'])
 def index():
     """Renders the main page."""
-    # Pass whether the chatbot is available to the template
     chatbot_available = bool(llama_model and llama_tokenizer)
     return render_template('index.html', chatbot_available=chatbot_available)
 
@@ -251,6 +303,7 @@ def index():
 def predict():
     """Handles image upload and prediction."""
     chatbot_available = bool(llama_model and llama_tokenizer) # Check again
+    patient_info = None # Initialize patient_info
 
     if 'image' not in request.files:
         flash('No image file part in the request.', 'danger')
@@ -273,8 +326,30 @@ def predict():
     if file and allowed_file(file.filename):
         try:
             image_bytes = file.read()
+
+            # ---- ADDED: Parse filename ----
+            original_filename = file.filename
+            patient_info = parse_patient_info(original_filename)
+            if patient_info:
+                print(f"Parsed Patient Info: {patient_info}")
+            else:
+                print(f"Could not parse patient info from filename: {original_filename}")
+            # ---- END ADDED ----
+
             # Generate report using Swin-T5
             report = generate_report(image_bytes, vlm_choice, max_length)
+
+            # Check for errors in report generation
+            if report.startswith("Error"):
+                 flash(f'Report Generation Failed: {report}', 'danger')
+                 # Still render with image if possible, but show error
+                 image_data = base64.b64encode(image_bytes).decode('utf-8')
+                 return render_template('index.html',
+                                        report=None, # Or pass the error message
+                                        image_data=image_data,
+                                        patient_info=patient_info, # Pass parsed info even if report failed
+                                        chatbot_available=chatbot_available)
+
 
             image_data = base64.b64encode(image_bytes).decode('utf-8')
 
@@ -282,11 +357,20 @@ def predict():
             return render_template('index.html',
                                    report=report,
                                    image_data=image_data,
+                                   patient_info=patient_info, # Pass the parsed info
                                    chatbot_available=chatbot_available) # Pass availability again
 
+        except FileNotFoundError as fnf_error:
+             flash(f'Model file not found: {fnf_error}. Please check server configuration.', 'danger')
+             print(f"Model file error: {fnf_error}\n{traceback.format_exc()}")
+             return redirect(url_for('index'))
+        except RuntimeError as rt_error:
+            flash(f'Model loading error: {rt_error}. Please check server logs.', 'danger')
+            print(f"Runtime error during prediction (model loading?): {rt_error}\n{traceback.format_exc()}")
+            return redirect(url_for('index'))
         except Exception as e:
-            flash(f'An error occurred during prediction: {e}', 'danger')
-            print(f"Error during prediction: {e}")
+            flash(f'An unexpected error occurred during prediction: {e}', 'danger')
+            print(f"Error during prediction: {e}\n{traceback.format_exc()}")
             return redirect(url_for('index'))
     else:
         flash('Invalid image file type. Allowed types: png, jpg, jpeg.', 'danger')
