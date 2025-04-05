@@ -8,6 +8,7 @@ from PIL import Image
 from flask import Flask, request, render_template, flash, redirect, url_for, jsonify
 from dotenv import load_dotenv # Import dotenv
 
+
 # Import necessary classes from your original script / transformers
 from transformers import (
     SwinModel,

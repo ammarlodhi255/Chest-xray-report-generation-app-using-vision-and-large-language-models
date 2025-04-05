@@ -1,0 +1,965 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Chest X-ray Report Generation Application Via VLM and LLM</title>
+    <!-- Google Font: Roboto -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
+    <style>
+        :root {
+            /* --- NEW: Color Palette & Design Tokens --- */
+            --primary-color: #0d6efd; /* Medical Blue */
+            --primary-color-rgb: 13, 110, 253; /* For RGBA usage */
+            --light-gray: #f0f2f5;
+            --medium-gray: #dee2e6;
+            --dark-gray: #495057;
+            --white: #ffffff;
+            --text-color: #333;
+            --report-text-color: #212529; /* Darker for report readability */
+            --border-radius-sm: 6px;
+            --border-radius-md: 8px;
+            --border-radius-lg: 12px;
+            --box-shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --box-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
+            --transition-speed: 0.4s;
+            --transition-easing: ease-in-out;
+            /* NEW: Highlighting Colors (Requires backend span insertion) */
+            --highlight-finding-color: #dc3545; /* Red for findings/conditions */
+            --highlight-device-color: #0d6efd; /* Blue for devices/tubes */
+        }
+
+        /* --- General Body & Container Styling --- */
+        body {
+            padding-top: 20px;
+            padding-bottom: 30px;
+            /* NEW: Subtle gradient background */
+            background: linear-gradient(135deg, #eef2f7 0%, #f0f5ff 100%);
+            color: var(--text-color);
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; /* UPDATED Font */
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        .container-fluid {
+            max-width: 1400px; /* Slightly wider max width */
+            /* NEW: Frosted glass effect */
+            background-color: rgba(255, 255, 255, 0.85); /* Slightly less transparent */
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 35px; /* Increased padding */
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--box-shadow-soft);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-weight: 700; /* Bolder Title */
+            margin-bottom: 2.2rem !important; /* Increased margin */
+            font-size: 2.1rem; /* Slightly larger title */
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+        }
+        h2 {
+            font-size: 1.5rem; /* Larger headings */
+            font-weight: 500; /* Medium weight */
+            color: var(--dark-gray);
+            margin-bottom: 20px; /* Increased */
+            padding-bottom: 10px;
+            border-bottom: 3px solid var(--primary-color); /* Thicker border */
+            display: inline-block; /* Keep border tight */
+        }
+
+        /* --- Main Layout --- */
+        .main-row {
+            margin-top: 30px;
+        }
+
+        /* --- Chat Interface Section (Left Column) --- */
+        #chat-column {
+            border-right: 1px solid var(--medium-gray);
+            padding-right: 35px; /* Increased padding */
+            display: flex;
+            flex-direction: column;
+            /* NEW: Adjust height to fit viewport better */
+            height: calc(85vh - 110px); /* Adjust header/padding height */
+            min-height: 500px;
+            transition: opacity 0.5s ease, filter 0.5s ease;
+        }
+        #chat-container {
+            flex-grow: 1; /* Take remaining space */
+            display: flex;
+            flex-direction: column;
+            background-color: #fdfdff; /* Slightly off-white */
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius-md);
+            padding: 20px;
+            overflow: hidden; /* Contain children */
+            box-shadow: inset 0 1px 4px rgba(0,0,0,0.04);
+        }
+        /* NEW: Disabled state style */
+        #chat-column.disabled {
+            opacity: 0.5;
+            filter: grayscale(50%);
+            pointer-events: none; /* Prevent interaction */
+        }
+        #chat-column.disabled #chat-placeholder { display: block; } /* Show placeholder when disabled */
+        #chat-placeholder {
+             display: none; /* Hidden by default */
+             text-align: center; padding: 60px 15px;
+             color: #888; font-style: italic; font-size: 0.9rem;
+             align-self: center; margin-top: auto; margin-bottom: auto; /* Center vertically */
+        }
+        #chat-messages {
+            flex-grow: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 10px;
+            /* NEW: Custom Scrollbar */
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) #f0f0f0;
+        }
+        #chat-messages::-webkit-scrollbar { width: 6px; }
+        #chat-messages::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 3px;}
+        #chat-messages::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 3px; border: 1px solid #f0f0f0;}
+
+        .chat-message { /* Existing Bubble Style */
+            margin-bottom: 15px; padding: 12px 18px; /* Slightly larger padding */
+            border-radius: var(--border-radius-lg); max-width: 85%;
+            word-wrap: break-word; line-height: 1.55; /* Increased line height */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+            /* NEW: Fade-in animation */
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeSlideIn 0.4s ease forwards;
+        }
+         @keyframes fadeSlideIn { to { opacity: 1; transform: translateY(0); } }
+
+        .user-message {
+            background-color: #dbeafe; margin-left: auto; /* Align right */
+            border-bottom-right-radius: var(--border-radius-sm); text-align: right;
+        }
+        .bot-message {
+            background-color: #e9ecef; margin-right: auto; /* Align left */
+            border-bottom-left-radius: var(--border-radius-sm); text-align: left;
+        }
+        /* NEW: Thinking indicator */
+        .bot-message.thinking {
+             font-style: italic; color: #6c757d; display: flex; align-items: center;
+        }
+        .bot-message.thinking::before {
+            content: ''; display: inline-block; width: 16px; height: 16px;
+            border: 2px solid var(--primary-color); border-top-color: transparent;
+            border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        #chat-form { display: flex; margin-top: auto; /* Push to bottom */ gap: 10px; }
+        #chat-input {
+            flex-grow: 1; border-radius: 25px; padding: 10px 18px;
+            border: 1px solid var(--medium-gray);
+            transition: box-shadow var(--transition-speed) var(--transition-easing);
+        }
+        #chat-input:focus {
+             box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.25); /* Use RGB variable */
+             border-color: var(--primary-color);
+        }
+        #send-button {
+            border-radius: 50%; /* Circular button */ width: 45px; height: 45px; padding: 0;
+            display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+            transition: background-color var(--transition-speed) var(--transition-easing), transform var(--transition-speed) var(--transition-easing);
+        }
+        #send-button:hover { transform: scale(1.1); } /* Slight scale on hover */
+        #send-button svg { width: 20px; height: 20px; fill: white; }
+
+        /* --- NEW: Example Questions Styling --- */
+        #example-questions {
+            margin-top: 12px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--medium-gray);
+            text-align: left;
+        }
+        #example-questions small {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.8rem;
+            color: var(--dark-gray);
+            font-weight: 500;
+        }
+        .suggestion-btn {
+            background-color: #f0f2f5;
+            border: 1px solid #d5d9de;
+            color: var(--primary-color);
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 15px;
+            margin-right: 6px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: background-color 0.2s ease, border-color 0.2s ease;
+            text-decoration: none; /* If using <a> tags */
+            display: inline-block; /* If using <a> tags */
+        }
+        .suggestion-btn:hover {
+            background-color: #e2e6ea;
+            border-color: #c8ced3;
+            color: #0a58ca;
+        }
+
+
+        /* --- Content Section (Right Column) --- */
+        #content-column {
+            padding-left: 35px; /* Increased padding */
+            /* NEW: Match height and scroll */
+            max-height: calc(85vh - 110px);
+            overflow-y: auto; scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) #f0f0f0;
+            position: relative; /* Needed for zoom panel positioning */
+        }
+        #content-column::-webkit-scrollbar { width: 6px; }
+        #content-column::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 3px;}
+        #content-column::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 3px; border: 1px solid #f0f0f0;}
+
+        /* --- Upload Form Styling & Animation --- */
+        /* NEW: Wrapper for form animation */
+        #form-wrapper {
+            transition: opacity var(--transition-speed) var(--transition-easing),
+                        transform var(--transition-speed) var(--transition-easing),
+                        max-height 0.6s var(--transition-easing), /* Slower height transition */
+                        margin-bottom var(--transition-speed) var(--transition-easing),
+                        padding-top var(--transition-speed) var(--transition-easing),
+                        padding-bottom var(--transition-speed) var(--transition-easing),
+                        border var(--transition-speed) var(--transition-easing);
+            overflow: hidden; max-height: 800px; /* Large enough initial height */ transform: translateY(0);
+            opacity: 1; margin-bottom: 30px; padding-top: 0; padding-bottom: 0; border: none;
+        }
+        #upload-form {
+            padding: 30px; /* Increased padding */
+            border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius-md);
+            background-color: #fdfdff; margin-bottom: 0; /* Remove bottom margin from form itself */
+        }
+        .form-label { font-weight: 500; margin-bottom: 0.6rem; } /* Slightly more spacing */
+        .form-control-sm, .form-select-sm {
+            padding: 0.45rem 0.9rem; font-size: 0.9rem; /* Slightly larger padding */
+            border-radius: var(--border-radius-sm);
+        }
+        .btn-primary {
+            background-color: var(--primary-color); border-color: var(--primary-color);
+            padding: 12px 22px; /* Increased padding */
+            font-size: 1rem; font-weight: 500; /* Medium weight */
+            border-radius: var(--border-radius-sm);
+            transition: background-color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing), box-shadow var(--transition-speed) var(--transition-easing);
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7; border-color: #0a58ca;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        /* NEW: Spinner styling */
+        .spinner-border { display: none; margin-right: 8px; width: 1.1rem; height: 1.1rem; }
+        #upload-form.processing .spinner-border { display: inline-block; }
+        #upload-form.processing button[type="submit"] { cursor: not-allowed; opacity: 0.7; }
+
+        /* --- State When Results are Loaded --- */
+        /* NEW: Hide form smoothly when results appear */
+        body.results-loaded #form-wrapper {
+            opacity: 0; transform: translateY(-20px) scale(0.95); /* Fade up and shrink slightly */
+            max-height: 0; padding-top: 0; padding-bottom: 0;
+            margin-top: 0; margin-bottom: 0; border-width: 0;
+            pointer-events: none; /* Prevent interaction when hidden */
+        }
+
+        /* --- Result Area Styling & Animation --- */
+        .result-area {
+            margin-top: 0; /* No margin needed as form wrapper collapses */
+            opacity: 0; /* Initially hidden */
+            transform: translateY(20px); /* Start slightly lower */
+            transition: opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s; /* Fade/slide in *after* form starts fading out */
+            /* Align content centrally if desired */
+             /* text-align: center; */ /* Let columns handle alignment */
+        }
+        body.results-loaded .result-area {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- NEW: Patient Info Section Styling --- */
+        #patient-info-section {
+            text-align: center; /* Center the content */
+            margin-bottom: 25px; /* Space below patient info */
+            padding-bottom: 15px; /* Space below the text */
+            border-bottom: 1px solid var(--medium-gray); /* Separator line */
+        }
+        #patient-info-section h3 {
+            font-size: 1.25rem; /* Slightly smaller heading */
+            font-weight: 500;
+            color: var(--dark-gray);
+            margin-bottom: 10px; /* Space between heading and data */
+            border-bottom: none; /* Remove the underline from general h2 style */
+            display: inline-block; /* Keep centered */
+        }
+        #patient-info-data {
+            font-size: 0.95rem;
+            color: var(--text-color);
+        }
+         #patient-info-data span { /* Separator style */
+            margin: 0 8px; /* Spacing around the separators */
+            color: var(--medium-gray); /* Make separators lighter */
+         }
+         #patient-info-data strong {
+             font-weight: 500; /* Slightly bolder labels */
+             color: var(--dark-gray);
+         }
+
+         /* Adjust result columns */
+         .result-area .row .col-md-6 {
+             display: flex;
+             flex-direction: column;
+             align-items: center; /* Center content (heading, container) horizontally */
+             margin-bottom: 20px;
+         }
+          .result-area .row .col-md-6 h2 {
+             width: 100%;
+             text-align: center; /* Center h2 text */
+         }
+         .img-preview-container, .report-box-container {
+              width: 100%; /* Take full column width */
+              max-width: 500px; /* Optional: prevent excessive width */
+              margin: 0 auto; /* Center container within column */
+         }
+
+
+        /* --- Image Preview & Zoom Styling --- */
+        #image-result-area { position: relative; width: 100%; /* Ensure container takes space */}
+        .img-preview {
+            max-width: 100%; height: auto; border: 1px solid var(--medium-gray);
+            border-radius: var(--border-radius-md); box-shadow: var(--box-shadow-soft);
+            display: block; /* Needed for centering if using margin auto */
+            margin: 0 auto; /* Center image within its container */
+            transition: box-shadow var(--transition-speed) var(--transition-easing);
+            cursor: crosshair; /* Indicate zoom capability */
+        }
+        .img-preview:hover { box-shadow: var(--box-shadow-hover); }
+
+        /* NEW: Improved Zoom Panel */
+        #zoom-preview-panel { /* Existing zoom panel */
+            position: absolute; width: 250px; height: 250px;
+            background-color: var(--white); border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius-md); box-shadow: var(--box-shadow-hover);
+            background-repeat: no-repeat; background-size: 0 0; background-position: 0 0;
+            /* Smooth fade, instant hide/show */
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.2s ease-out, visibility 0s linear 0.2s;
+            pointer-events: none; z-index: 100; overflow: hidden;
+            /* Initial position (will be adjusted by JS) */
+            top: 0; left: calc(100% + 15px);
+        }
+        /* Adjust zoom panel side on smaller large screens */
+         @media (max-width: 1200px) and (min-width: 992px) { /* Only when columns are still side-by-side */
+             #zoom-preview-panel { left: auto; right: calc(100% + 15px); }
+         }
+         /* Hide zoom panel on medium/small screens */
+         @media (max-width: 991.98px) {
+             #zoom-preview-panel { display: none; }
+             .img-preview { cursor: default; } /* Remove crosshair if no zoom */
+         }
+
+        /* --- Report Box Styling --- */
+        .report-box {
+            border: 1px solid var(--medium-gray); padding: 25px; /* Increased padding */
+            background-color: #fdfdff; border-radius: var(--border-radius-md);
+            min-height: 250px; /* Ensure minimum height */
+            font-family: 'Roboto', 'Consolas', 'Courier New', monospace; /* Use Roboto first, fallback to mono */
+            font-size: 0.95rem; /* Slightly larger report font */
+            color: var(--report-text-color); white-space: pre-wrap; word-wrap: break-word;
+            box-shadow: var(--box-shadow-soft); line-height: 1.7; /* Increased line height */
+            text-align: left; /* Ensure report text is left-aligned */
+        }
+
+        /* --- NEW: Medical Term Highlighting (Requires Backend Span Insertion) --- */
+        .medical-term-finding {
+            font-weight: 600; /* Bold */
+            color: var(--highlight-finding-color); /* Red */
+            /* background-color: #fdeaea; */ /* Optional light red background */
+            /* padding: 0 2px; */
+            /* border-radius: 3px; */
+        }
+        .medical-term-device {
+            font-weight: 600; /* Bold */
+            color: var(--highlight-device-color); /* Blue */
+            /* background-color: #e7f1ff; */ /* Optional light blue background */
+            /* padding: 0 2px; */
+            /* border-radius: 3px; */
+        }
+
+        /* --- NEW: Medical Icon Styling (Requires Backend <i> Insertion) --- */
+        .medical-icon {
+            margin-left: 6px;
+            color: var(--dark-gray); /* Subtle icon color */
+            font-size: 0.9em; /* Slightly smaller than text */
+            cursor: help; /* Indicate tooltip */
+            vertical-align: middle; /* Align nicely with text */
+        }
+        .tooltip-inner { /* Style Bootstrap Tooltip */
+           background-color: var(--dark-gray);
+           color: var(--white);
+           font-size: 0.8rem;
+           padding: 5px 10px;
+           border-radius: var(--border-radius-sm);
+        }
+         .tooltip.bs-tooltip-auto[data-popper-placement^=top] .tooltip-arrow::before,
+         .tooltip.bs-tooltip-top .tooltip-arrow::before {
+             border-top-color: var(--dark-gray);
+         }
+         /* Add similar rules for bottom, left, right if needed */
+
+
+        /* --- Hidden element for report context --- */
+        #report-context-data { display: none; }
+
+        /* --- NEW: Reset Button --- */
+        #reset-button {
+             display: none; /* Hidden by default */
+             margin: 30px auto 0; /* Center horizontally, space above */
+             opacity: 0; transition: opacity var(--transition-speed) ease-out 0.5s; /* Fade in after results */
+             padding: 10px 20px;
+             font-size: 0.95rem; border-radius: var(--border-radius-sm);
+             align-items: center; justify-content: center; gap: 8px; /* Space icon and text */
+        }
+        /* Show reset button when results are loaded */
+        body.results-loaded #reset-button { display: inline-flex; opacity: 1; }
+        #reset-button svg { width: 1em; height: 1em; }
+
+
+        /* --- Responsive adjustments --- */
+        @media (max-width: 991.98px) { /* Medium screens and below */
+            #chat-column {
+                border-right: none; border-bottom: 1px solid var(--medium-gray);
+                padding-right: 0; margin-bottom: 30px; /* Increased */
+                height: 60vh; /* Adjusted height */ min-height: 450px;
+            }
+            #content-column {
+                padding-left: 0; max-height: none; overflow-y: visible;
+            }
+            .container-fluid { padding: 25px; } /* Increased */
+            h1 { font-size: 1.9rem; }
+            h2 { font-size: 1.4rem; }
+            /* Stack image/report vertically */
+             .result-area .row > div[class*="col-md-"] { /* Target columns directly */
+                 width: 100%; /* Make columns full width */
+                 margin-bottom: 25px; /* Space between stacked items */
+             }
+             #image-result-area { /* No extra margin needed if column has it */ }
+        }
+        @media (max-width: 767.98px) { /* Small screens */
+             h1 { font-size: 1.7rem; margin-bottom: 1.8rem !important; }
+             h2 { font-size: 1.3rem; }
+             .container-fluid { padding: 20px; }
+             #chat-column { height: 55vh; min-height: 400px; }
+             .btn-primary, #reset-button { font-size: 0.9rem; padding: 10px 18px;}
+             #send-button { width: 40px; height: 40px; }
+             #send-button svg { width: 18px; height: 18px; }
+             #chat-input { padding: 8px 15px; }
+             .report-box { padding: 20px; font-size: 0.9rem; min-height: 200px;}
+        }
+
+    </style>
+</head>
+<!-- Add 'results-loaded' class server-side if results exist -->
+<body class="{{ 'results-loaded' if report or image_data else '' }}">
+    <div class="container-fluid">
+        <h1 class="mb-4 text-center">Chest X-ray Report Generation</h1>
+
+        <!-- Flash Messages -->
+        <div id="flash-message-container"> <!-- Wrapper for potential styling -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible fade show mb-3" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+        </div>
+
+        <!-- Main Row: Chat on Left, Content on Right -->
+        <div class="row main-row">
+
+            <!-- Chat Column (Left) -->
+             <!-- Conditionally add 'disabled' class -->
+            <div class="col-lg-5" id="chat-column" class="{{ 'disabled' if not report or not chatbot_available }}">
+                 <h2><i class="fas fa-comments me-2"></i>Chat about Report</h2>
+                 <small class="text-muted mb-2 d-block">Ask questions based *only* on the generated report.</small>
+
+                 {% if report and not chatbot_available %} <!-- Show warning only if report exists but chat is off -->
+                     <div class="alert alert-warning small p-2 mt-2">Chatbot (Llama 3.1) is not available or failed to load. Please check server logs.</div>
+                 {% endif %}
+
+                <div id="chat-container">
+                     <div id="chat-placeholder">Generate a report first to enable chat.</div>
+                    <div id="chat-messages">
+                        <!-- Welcome message if chat enabled -->
+                        {% if report and chatbot_available %}
+                         <div class="chat-message bot-message" style="opacity: 1; transform: none;">Welcome! Ask me about the findings, impression, or specific details in the report above.</div>
+                         {% endif %}
+                        <!-- Dynamic messages here -->
+                    </div>
+                    <form id="chat-form" action="javascript:void(0);">
+                        <input type="text" id="chat-input" class="form-control" placeholder="Type your question..." autocomplete="off" {% if not report or not chatbot_available %}disabled{% endif %}>
+                        <button type="submit" id="send-button" class="btn btn-primary" {% if not report or not chatbot_available %}disabled{% endif %}>
+                            <!-- Send Icon -->
+                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
+                        </button>
+                    </form>
+                    <!-- NEW: Example Questions Section (Only show if chat enabled) -->
+                    <div id="example-questions" {% if not report or not chatbot_available %}style="display: none;"{% endif %}>
+                        <small>Example Questions:</small>
+                        <button class="suggestion-btn">What are the main findings?</button>
+                        <button class="suggestion-btn">Are there any tubes or lines mentioned?</button>
+                        <button class="suggestion-btn">Summarize the impression.</button>
+                        <button class="suggestion-btn">Is the heart size normal?</button>
+                        <button class="suggestion-btn">Any signs of pleural effusion?</button>
+                        <!-- Add more suggestions as needed -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Column (Right - Form, Image, Report) -->
+            <div class="col-lg-7" id="content-column">
+
+                <!-- Form Section Wrapper (for animation) -->
+                <div id="form-wrapper">
+                    <h2><i class="fas fa-upload me-2"></i>Generate Report</h2>
+                    <form id="upload-form" method="post" enctype="multipart/form-data" action="{{ url_for('predict') }}">
+                        <div class="mb-3">
+                            <label for="imageUpload" class="form-label">1. Upload Chest X-Ray Image:</label>
+                            <input class="form-control form-control-sm" type="file" id="imageUpload" name="image" accept="image/png, image/jpeg, image/jpg" required>
+                            <div class="form-text">Allowed formats: PNG, JPG, JPEG. Filename format like '...-View-Age-Gender-Ethnicity.png' helps extract patient info.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="vlmSelect" class="form-label">2. Choose Vision-Language Model:</label>
+                            <select class="form-select form-select-sm" id="vlmSelect" name="vlm_choice">
+                                <option value="swin_t5_chexpert" selected>Swin-T5 (CheXpert Trained)</option>
+                                <!-- Add other models here if available -->
+                                <!-- <option value="other_vlm" disabled>Other Model (Coming Soon)</option> -->
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxLength" class="form-label">3. Max Report Length (tokens):</label>
+                            <input type="number" class="form-control form-control-sm" id="maxLength" name="max_length" value="100" min="10" max="512">
+                            <div class="form-text">Adjusts the maximum length of the generated report (default: 100).</div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 mt-2">
+                             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                             <i class="fas fa-file-medical-alt me-1"></i> Generate Report
+                        </button>
+                    </form>
+                </div>
+                <!-- End Form Section -->
+
+                <!-- Result Section (Only render if data exists) -->
+                {% if report or image_data %}
+                <div class="result-area">
+
+                    <!-- ================== NEW: Patient Info Section ================== -->
+                    {% if patient_info %}
+                    <div id="patient-info-section">
+                        <h3><i class="fas fa-user-md me-2"></i>Patient Information</h3>
+                        <p id="patient-info-data">
+                            <strong>View:</strong> {{ patient_info.view | e }}
+                            <span>|</span>
+                            <strong>Age:</strong> {{ patient_info.age | e }}
+                            <span>|</span>
+                            <strong>Gender:</strong> {{ patient_info.gender | e }}
+                            <span>|</span>
+                            <strong>Ethnicity:</strong> {{ patient_info.ethnicity | e }}
+                        </p>
+                    </div>
+                    {% elif image_data %} <!-- Show placeholder only if image exists but no info parsed -->
+                     <div id="patient-info-section">
+                        <p class="text-muted small"><em>Patient information could not be parsed from the filename.</em></p>
+                    </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <!-- Image Column -->
+                        {% if image_data %}
+                        <div class="col-md-6">
+                            <div class="img-preview-container" id="image-result-area">
+                                <h2><i class="fas fa-image me-2"></i>Uploaded Image</h2>
+                                <img id="uploaded-image" src="data:image/jpeg;base64,{{ image_data }}" alt="Uploaded Chest X-ray" class="img-preview">
+                                <!-- Zoom panel will be positioned by JS -->
+                                <div id="zoom-preview-panel"></div>
+                                <small class="d-block text-muted mt-2">Hover over image to zoom (on desktop).</small>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <!-- Report Column -->
+                        {% if report %}
+                        <div class="col-md-6">
+                            <div class="report-box-container">
+                                <h2><i class="fas fa-file-alt me-2"></i>Generated Report</h2>
+                                <div class="report-box">
+                                    {# IMPORTANT: Use |safe ONLY if backend sanitizes output OR you trust the model's output completely #}
+                                    {# For safety, especially with LLMs, escaping is generally better unless you NEED the HTML from backend #}
+                                    {# If backend adds spans/icons, use |safe. Otherwise, use |e #}
+                                    {{ report | safe if report.count('<') > 0 else report | e }} {# Basic check for HTML #}
+                                </div>
+                                <!-- Hidden data attribute to store raw report for chat JS -->
+                                <div id="report-context-data" data-report="{{ report|e }}"></div>
+                            </div>
+                        </div>
+                        {% elif image_data %} <!-- Show placeholder if image exists but report failed -->
+                         <div class="col-md-6">
+                             <div class="report-box-container">
+                                <h2><i class="fas fa-file-alt me-2"></i>Generated Report</h2>
+                                 <div class="alert alert-danger">Report generation failed. Please check the logs or try again.</div>
+                             </div>
+                         </div>
+                        {% endif %}
+                    </div> <!-- End Result Row -->
+
+                     <!-- Reset Button -->
+                     <button id="reset-button" class="btn btn-outline-secondary">
+                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-clockwise" viewBox="0 0 16 16" aria-hidden="true">
+                           <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                           <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                         </svg>
+                         <span>Start Over / New Image</span>
+                     </button>
+
+                </div> <!-- End Result Area -->
+                {% endif %}
+                <!-- End Result Section -->
+
+            </div> <!-- End Content Column -->
+        </div> <!-- End Main Row -->
+    </div> <!-- End Container -->
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Initialize Bootstrap Tooltips (for potential icons) ---
+            // NOTE: Requires backend to add data-bs-toggle="tooltip" attributes
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+              return new bootstrap.Tooltip(tooltipTriggerEl, { boundary: document.body }); // Prevent tooltip cutoff
+            });
+
+            // --- Form Processing Indicator & Animation Control ---
+            const form = document.getElementById('upload-form');
+            const formWrapper = document.getElementById('form-wrapper');
+            const submitButton = form?.querySelector('button[type="submit"]');
+            const spinner = submitButton?.querySelector('.spinner-border');
+            const body = document.body;
+
+            // Check if results are already loaded (page reload/back button)
+            const resultsExistOnLoad = body.classList.contains('results-loaded');
+
+            if (form && submitButton && formWrapper) {
+                 form.addEventListener('submit', function(e) {
+                     const fileInput = document.getElementById('imageUpload');
+                     // Basic validation: Check if file is selected
+                     if (!fileInput || fileInput.files.length === 0) {
+                         // Optionally show a more specific message if needed
+                         // e.preventDefault(); // Prevent submission if no file
+                         return; // Let HTML5 required attribute handle it mostly
+                     }
+
+                     // Show processing state
+                     form.classList.add('processing');
+                     submitButton.disabled = true;
+                     if (spinner) spinner.style.display = 'inline-block';
+                     submitButton.querySelector('i')?.classList.add('d-none'); // Hide icon when spinning
+
+                     // We don't add 'results-loaded' here, Flask does it on the *next* page load
+                 });
+            }
+
+             // Reset form state if navigating back to the form page
+             window.addEventListener('pageshow', function(event) {
+                 // event.persisted is true for bfcache restores
+                 if (event.persisted || (window.performance && window.performance.navigation.type === 2)) { // type 2 is back/forward
+                    if (form && submitButton && spinner) {
+                        form.classList.remove('processing');
+                        submitButton.disabled = false;
+                        spinner.style.display = 'none';
+                        submitButton.querySelector('i')?.classList.remove('d-none'); // Show icon again
+                    }
+                    // If navigating back *to* the results page, ensure body class is correct
+                    // (Flask should handle this on initial load, but bfcache might bypass server)
+                    const reportContextData = document.getElementById('report-context-data');
+                    if (reportContextData && reportContextData.dataset.report) {
+                        body.classList.add('results-loaded');
+                    } else {
+                        body.classList.remove('results-loaded');
+                    }
+                 }
+            });
+
+
+            // --- Chat Functionality ---
+            const chatForm = document.getElementById('chat-form');
+            const chatInput = document.getElementById('chat-input');
+            const chatMessages = document.getElementById('chat-messages');
+            const sendButton = document.getElementById('send-button');
+            const reportContextData = document.getElementById('report-context-data');
+            const chatColumn = document.getElementById('chat-column');
+            const chatPlaceholder = document.getElementById('chat-placeholder');
+            const exampleQuestionsContainer = document.getElementById('example-questions');
+
+            // Get report context safely
+            const reportContext = reportContextData ? reportContextData.dataset.report : null;
+            // Get chatbot availability from Flask (passed as JS boolean)
+            // Ensure it's a proper boolean, default to false if undefined
+            const isChatbotAvailable = typeof {{ chatbot_available|lower if chatbot_available is defined else 'false' }} === 'boolean' ? {{ chatbot_available|lower if chatbot_available is defined else 'false' }} : false;
+            const isChatEnabled = !!reportContext && isChatbotAvailable; // Use !! to ensure boolean
+
+             // Initial setup based on chat state
+             if (chatColumn) {
+                 if (!isChatEnabled) {
+                     chatColumn.classList.add('disabled');
+                     if (chatInput) chatInput.disabled = true;
+                     if (sendButton) sendButton.disabled = true;
+                     if (chatPlaceholder) chatPlaceholder.style.display = 'block';
+                     if (exampleQuestionsContainer) exampleQuestionsContainer.style.display = 'none';
+                     console.log("Chat disabled: No report context or chatbot unavailable.");
+                 } else {
+                     chatColumn.classList.remove('disabled');
+                     if (chatInput) chatInput.disabled = false;
+                     if (sendButton) sendButton.disabled = false;
+                     if (chatPlaceholder) chatPlaceholder.style.display = 'none';
+                     if (exampleQuestionsContainer) exampleQuestionsContainer.style.display = 'block';
+                     console.log("Chat enabled.");
+                     // Scroll to bottom on load if messages exist
+                     if(chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+                 }
+             }
+
+            // Function to add messages to the chat window
+            function addChatMessage(message, sender, isThinking = false) {
+                if (!chatMessages) return null;
+
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('chat-message', sender === 'user' ? 'user-message' : 'bot-message');
+
+                if (isThinking) {
+                    messageDiv.classList.add('thinking');
+                    messageDiv.innerHTML = '<span> Thinking...</span>'; // Use innerHTML for potential spinner/icon later
+                } else {
+                    // Sanitize text content to prevent XSS if displaying user input directly
+                    // For bot messages, trust the backend or sanitize here if needed
+                    messageDiv.textContent = message;
+                }
+
+                chatMessages.appendChild(messageDiv);
+                // Scroll to the bottom smoothly
+                 chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                return messageDiv; // Return the element for potential updates (like removing 'thinking')
+            }
+
+            // Handle chat form submission
+            if (chatForm && isChatEnabled) {
+                chatForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (!chatInput || !reportContext) return;
+
+                    const question = chatInput.value.trim();
+                    if (!question) return;
+
+                    addChatMessage(question, 'user');
+                    chatInput.value = ''; // Clear input
+                    chatInput.disabled = true; // Disable during processing
+                    if (sendButton) sendButton.disabled = true;
+
+                    // Add thinking indicator
+                    const thinkingMessageElement = addChatMessage('', 'bot', true);
+
+                    try {
+                        const response = await fetch("{{ url_for('chat') }}", { // Use url_for for robustness
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ question: question, report_context: reportContext }),
+                        });
+
+                        // Remove thinking state before showing response/error
+                        if (thinkingMessageElement) thinkingMessageElement.remove();
+
+                        if (!response.ok) {
+                            // Try to get error message from JSON response
+                            let errorMsg = `Error: ${response.statusText}`;
+                            try {
+                                const errorData = await response.json();
+                                errorMsg = `Error: ${errorData.error || response.statusText}`;
+                            } catch (jsonError) { /* Ignore if response not JSON */ }
+                            console.error('Chat API Error:', response.status, errorMsg);
+                            addChatMessage(errorMsg, 'bot').style.color = 'red'; // Show error in chat
+                        } else {
+                            const data = await response.json();
+                            const answer = data.answer || "Received empty response.";
+                            addChatMessage(answer, 'bot'); // Display the bot's answer
+                        }
+                    } catch (error) {
+                        console.error('Fetch error:', error);
+                        if (thinkingMessageElement) thinkingMessageElement.remove(); // Ensure thinking removed on network error
+                        addChatMessage('Error connecting to the chat service.', 'bot').style.color = 'red';
+                    } finally {
+                        // Re-enable input and button
+                        if(chatInput) chatInput.disabled = false;
+                        if(sendButton) sendButton.disabled = false;
+                        if(chatInput) chatInput.focus(); // Set focus back to input
+                        // Ensure scroll to bottom after response
+                        if(chatMessages) {
+                             chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
+                        }
+                    }
+                });
+            } else if (chatForm && !isChatEnabled) {
+                 // Prevent submission if chat is disabled initially
+                 chatForm.addEventListener('submit', (e) => e.preventDefault());
+            }
+
+            // --- NEW: Example Question Click Handler ---
+            if (exampleQuestionsContainer && chatInput && chatForm && isChatEnabled) {
+                exampleQuestionsContainer.addEventListener('click', (e) => {
+                    if (e.target && e.target.classList.contains('suggestion-btn')) {
+                         e.preventDefault();
+                        const questionText = e.target.textContent || e.target.innerText;
+                        if (questionText && !chatInput.disabled) {
+                            chatInput.value = questionText;
+                            chatInput.focus();
+                            // Optional: Automatically submit
+                            // setTimeout(() => chatForm.requestSubmit(), 100); // Use requestSubmit for better form handling
+                        }
+                    }
+                });
+            }
+
+
+            // --- Image Hover Zoom Functionality ---
+            const imagePreview = document.getElementById('uploaded-image');
+            const zoomPanel = document.getElementById('zoom-preview-panel');
+            const imageContainer = document.getElementById('image-result-area'); // Use the container for hover area
+
+            if (imagePreview && zoomPanel && imageContainer) {
+                 let naturalWidth = 0;
+                 let naturalHeight = 0;
+                 const zoomLevel = 2; // Magnification level (e.g., 2x)
+
+                 const updateImageDimensions = () => {
+                     naturalWidth = imagePreview.naturalWidth;
+                     naturalHeight = imagePreview.naturalHeight;
+                     if (naturalWidth > 0 && naturalHeight > 0) {
+                         // Set background size for zoom calculation
+                         zoomPanel.style.backgroundSize = `${naturalWidth * zoomLevel}px ${naturalHeight * zoomLevel}px`;
+                         console.log(`Image loaded: ${naturalWidth}x${naturalHeight}`);
+                     } else {
+                          console.warn("Image natural dimensions not available yet or invalid.");
+                     }
+                 };
+
+                 // Handle image loading, including cached images
+                 if (imagePreview.complete && imagePreview.naturalWidth > 0) {
+                     updateImageDimensions();
+                 } else {
+                     imagePreview.onload = updateImageDimensions;
+                     imagePreview.onerror = () => {
+                         console.error("Image failed to load.");
+                         naturalWidth = 0; naturalHeight = 0; // Reset dimensions on error
+                         // Optionally hide or indicate error
+                     };
+                 }
+
+                 let isZoomActive = false;
+
+                 imageContainer.addEventListener('mouseenter', () => {
+                     if (naturalWidth > 0 && naturalHeight > 0) {
+                        zoomPanel.style.backgroundImage = `url('${imagePreview.src}')`;
+                        zoomPanel.style.opacity = '1';
+                        zoomPanel.style.visibility = 'visible';
+                        // Make transition instant when entering
+                        zoomPanel.style.transition = 'opacity 0.2s ease-out, visibility 0s linear 0s';
+                        isZoomActive = true;
+                     }
+                 });
+
+                 imageContainer.addEventListener('mousemove', (e) => {
+                    if (!isZoomActive || naturalWidth === 0 || naturalHeight === 0) return;
+
+                    const imgRect = imagePreview.getBoundingClientRect(); // Use image rect for coords
+                    const panelRect = zoomPanel.getBoundingClientRect(); // Use panel rect for size
+
+                    // Calculate mouse position relative to the image
+                    const x = e.clientX - imgRect.left;
+                    const y = e.clientY - imgRect.top;
+
+                    // Calculate percentage position within the image
+                    const percX = Math.max(0, Math.min(1, x / imgRect.width));
+                    const percY = Math.max(0, Math.min(1, y / imgRect.height));
+
+                    // Calculate background position:
+                    // Move background opposite to mouse movement, scaled by zoom level
+                    // Center the zoomed area around the mouse pointer
+                    const bgX = -(percX * (naturalWidth * zoomLevel - panelRect.width));
+                    const bgY = -(percY * (naturalHeight * zoomLevel - panelRect.height));
+
+                    zoomPanel.style.backgroundPosition = `${bgX}px ${bgY}px`;
+
+                    // Dynamic Positioning (Improved): Try right first, then left
+                    const containerRect = imageContainer.getBoundingClientRect();
+                    const gap = 15; // Space between image and zoom panel
+
+                    // Check space on the right (relative to the viewport)
+                    const spaceRight = window.innerWidth - containerRect.right - gap;
+                    // Check space on the left (relative to the viewport)
+                    const spaceLeft = containerRect.left - gap;
+
+                    if (spaceRight >= panelRect.width) {
+                        // Enough space on the right
+                        zoomPanel.style.left = `${imgRect.right - containerRect.left + gap}px`; // Position relative to container
+                        zoomPanel.style.right = 'auto';
+                    } else if (spaceLeft >= panelRect.width) {
+                         // Enough space on the left
+                        zoomPanel.style.right = `${containerRect.right - imgRect.left + gap}px`; // Position relative to container
+                        zoomPanel.style.left = 'auto';
+                    } else {
+                         // Default to right if neither fits well (might overlap)
+                         zoomPanel.style.left = `${imgRect.right - containerRect.left + gap}px`;
+                         zoomPanel.style.right = 'auto';
+                    }
+                     // Keep top alignment simple for now
+                     zoomPanel.style.top = `${imgRect.top - containerRect.top}px`; // Align top with image top within container
+                });
+
+                imageContainer.addEventListener('mouseleave', () => {
+                    zoomPanel.style.opacity = '0';
+                    zoomPanel.style.visibility = 'hidden';
+                    // Delay hiding slightly to prevent flickering
+                    zoomPanel.style.transition = 'opacity 0.2s ease-out, visibility 0s linear 0.2s';
+                    isZoomActive = false;
+                });
+            } else {
+                 console.log("Image zoom elements not found or image failed to load.");
+            }
+
+
+            // --- Reset Button Functionality ---
+            const resetButton = document.getElementById('reset-button');
+             if(resetButton) {
+                 resetButton.addEventListener('click', () => {
+                     // Simple redirect to clear state
+                     window.location.href = "{{ url_for('index') }}";
+                 });
+             }
+
+        }); // End DOMContentLoaded
+    </script>
+
+</body>
+</html>

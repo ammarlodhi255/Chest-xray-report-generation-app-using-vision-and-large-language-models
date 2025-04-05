@@ -14,60 +14,203 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.0/css/all.min.css">
     <style>
         :root {
-            --primary-color: #0d6efd; /* Medical Blue */
-            --light-gray: #f0f2f5;
-            --medium-gray: #dee2e6;
-            --dark-gray: #495057;
-            --white: #ffffff;
-            --text-color: #333;
-            --report-text-color: #212529; /* Darker for report readability */
+            /* --- Light Mode Color Palette & Design Tokens --- */
+            --lm-primary-color: #0d6efd; /* Medical Blue */
+            --lm-primary-color-rgb: 13, 110, 253;
+            --lm-bg-primary: linear-gradient(135deg, #eef2f7 0%, #f0f5ff 100%);
+            --lm-bg-container: rgba(255, 255, 255, 0.85);
+            --lm-bg-content: #fdfdff; /* chat container, report box, form */
+            --lm-bg-input: #ffffff;
+            --lm-bg-user-msg: #dbeafe;
+            --lm-bg-bot-msg: #e9ecef;
+            --lm-bg-suggestion: #f0f2f5;
+            --lm-bg-suggestion-hover: #e2e6ea;
+            --lm-text-primary: #333;
+            --lm-text-secondary: #495057; /* dark-gray */
+            --lm-text-muted: #6c757d;
+            --lm-text-report: #212529;
+            --lm-border-primary: var(--lm-primary-color); /* Container border */
+            --lm-border-secondary: #dee2e6; /* medium-gray */
+            --lm-border-suggestion: #d5d9de;
+            --lm-border-suggestion-hover: #c8ced3;
+            --lm-shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --lm-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
+            --lm-shadow-inset: inset 0 1px 4px rgba(0,0,0,0.04);
+            --lm-highlight-finding: #dc3545; /* Red */
+            --lm-highlight-device: var(--lm-primary-color); /* Blue */
+            --lm-scrollbar-thumb: var(--lm-primary-color);
+            --lm-scrollbar-track: #f0f0f0;
+
+            /* --- Dark Mode Color Palette & Design Tokens --- */
+            --dm-primary-color: #e53935; /* Vivid Red */
+            --dm-primary-color-rgb: 229, 57, 53;
+            --dm-bg-primary: #1a1a1a; /* Very Dark Gray/Near Black */
+            --dm-bg-container: rgba(33, 33, 33, 0.9); /* Darker container with slight transparency */
+            --dm-bg-content: #2d2d2d; /* Chat container, report box, form */
+            --dm-bg-input: #3a3a3a;
+            --dm-bg-user-msg: #5e2828; /* Dark red background for user */
+            --dm-bg-bot-msg: #3f3f3f; /* Dark gray for bot */
+            --dm-bg-suggestion: #4a4a4a;
+            --dm-bg-suggestion-hover: #5a5a5a;
+            --dm-text-primary: #f5f5f5; /* Off-white */
+            --dm-text-secondary: #bdbdbd; /* Lighter Gray */
+            --dm-text-muted: #9e9e9e;
+            --dm-text-report: #f5f5f5;
+            --dm-text-input-placeholder: #a0a0a0;
+            --dm-border-primary: var(--dm-primary-color); /* Container border */
+            --dm-border-secondary: #555555; /* Darker Gray Border */
+            --dm-border-suggestion: #666666;
+            --dm-border-suggestion-hover: #777777;
+            --dm-shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.4);
+            --dm-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.5);
+            --dm-shadow-inset: inset 0 1px 4px rgba(0,0,0,0.2);
+            --dm-highlight-finding: #ff7961; /* Lighter Red for contrast */
+            --dm-highlight-device: #6ec6ff; /* Lighter Blue for contrast */
+            --dm-scrollbar-thumb: var(--dm-primary-color);
+            --dm-scrollbar-track: #424242;
+
+            /* --- Universal Tokens --- */
             --border-radius-sm: 6px;
             --border-radius-md: 8px;
             --border-radius-lg: 12px;
-            --box-shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.08);
-            --box-shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.12);
-            --transition-speed: 0.4s;
-            --transition-easing: ease-in-out;
-            --highlight-finding-color: #dc3545; /* Red for findings/conditions */
-            --highlight-device-color: #0d6efd; /* Blue for devices/tubes */
+            --transition-speed: 0.3s; /* Slightly faster transition */
+            --transition-easing: ease; /* Use standard ease */
+
+            /* --- Apply Light Mode by Default --- */
+            --primary-color: var(--lm-primary-color);
+            --primary-color-rgb: var(--lm-primary-color-rgb);
+            --bg-primary: var(--lm-bg-primary);
+            --bg-container: var(--lm-bg-container);
+            --bg-content: var(--lm-bg-content);
+            --bg-input: var(--lm-bg-input);
+            --bg-user-msg: var(--lm-bg-user-msg);
+            --bg-bot-msg: var(--lm-bg-bot-msg);
+            --bg-suggestion: var(--lm-bg-suggestion);
+            --bg-suggestion-hover: var(--lm-bg-suggestion-hover);
+            --text-primary: var(--lm-text-primary);
+            --text-secondary: var(--lm-text-secondary);
+            --text-muted: var(--lm-text-muted);
+            --text-report: var(--lm-text-report);
+            --text-input-placeholder: inherit; /* Use default */
+            --border-primary: var(--lm-border-primary);
+            --border-secondary: var(--lm-border-secondary);
+            --border-suggestion: var(--lm-border-suggestion);
+            --border-suggestion-hover: var(--lm-border-suggestion-hover);
+            --shadow-soft: var(--lm-shadow-soft);
+            --shadow-hover: var(--lm-shadow-hover);
+            --shadow-inset: var(--lm-shadow-inset);
+            --highlight-finding-color: var(--lm-highlight-finding);
+            --highlight-device-color: var(--lm-highlight-device);
+            --scrollbar-thumb: var(--lm-scrollbar-thumb);
+            --scrollbar-track: var(--lm-scrollbar-track);
+        }
+
+        /* --- Apply Dark Mode Variables --- */
+        body.dark-mode {
+            --primary-color: var(--dm-primary-color);
+            --primary-color-rgb: var(--dm-primary-color-rgb);
+            --bg-primary: var(--dm-bg-primary);
+            --bg-container: var(--dm-bg-container);
+            --bg-content: var(--dm-bg-content);
+            --bg-input: var(--dm-bg-input);
+            --bg-user-msg: var(--dm-bg-user-msg);
+            --bg-bot-msg: var(--dm-bg-bot-msg);
+            --bg-suggestion: var(--dm-bg-suggestion);
+            --bg-suggestion-hover: var(--dm-bg-suggestion-hover);
+            --text-primary: var(--dm-text-primary);
+            --text-secondary: var(--dm-text-secondary);
+            --text-muted: var(--dm-text-muted);
+            --text-report: var(--dm-text-report);
+            --text-input-placeholder: var(--dm-text-input-placeholder);
+            --border-primary: var(--dm-border-primary);
+            --border-secondary: var(--dm-border-secondary);
+            --border-suggestion: var(--dm-border-suggestion);
+            --border-suggestion-hover: var(--dm-border-suggestion-hover);
+            --shadow-soft: var(--dm-shadow-soft);
+            --shadow-hover: var(--dm-shadow-hover);
+            --shadow-inset: var(--dm-shadow-inset);
+            --highlight-finding-color: var(--dm-highlight-finding);
+            --highlight-device-color: var(--dm-highlight-device);
+            --scrollbar-thumb: var(--dm-scrollbar-thumb);
+            --scrollbar-track: var(--dm-scrollbar-track);
         }
 
         /* --- General Body & Container Styling --- */
         body {
             padding-top: 20px;
             padding-bottom: 30px;
-            background: linear-gradient(135deg, #eef2f7 0%, #f0f5ff 100%); /* Soft background gradient */
-            color: var(--text-color);
-            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; /* UPDATED Font */
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
             overflow-x: hidden;
+            transition: background-color var(--transition-speed) var(--transition-easing), color var(--transition-speed) var(--transition-easing);
         }
 
         .container-fluid {
             max-width: 1400px;
-            background-color: rgba(255, 255, 255, 0.85); /* Slightly less transparent */
+            background-color: var(--bg-container);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            padding: 35px; /* Increased padding */
+            padding: 35px;
             border-radius: var(--border-radius-lg);
-            box-shadow: var(--box-shadow-soft);
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            box-shadow: var(--shadow-soft);
+            border: 3px solid var(--border-primary);
+            transition: background-color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing), box-shadow var(--transition-speed) var(--transition-easing);
+        }
+
+        /* Dark Mode Toggle Button Style */
+        #darkModeToggle {
+            border: 1px solid var(--border-secondary); /* Use secondary border */
+            color: var(--text-secondary);
+            background-color: transparent; /* Start transparent */
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border-radius: 50%;
+            transition: background-color var(--transition-speed) var(--transition-easing), color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing), transform 0.2s ease;
+        }
+        #darkModeToggle:hover {
+            background-color: rgba(var(--primary-color-rgb), 0.1);
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+            transform: scale(1.05);
+        }
+         body.dark-mode #darkModeToggle {
+             border-color: var(--dm-border-secondary); /* Dark mode border */
+             color: var(--dm-text-secondary); /* Dark mode text */
+             background-color: #444; /* Slightly lighter dark */
+        }
+         body.dark-mode #darkModeToggle:hover {
+             background-color: #555;
+             border-color: var(--dm-primary-color);
+             color: var(--dm-primary-color);
+             transform: scale(1.05);
         }
 
         h1 {
             color: var(--primary-color);
-            font-weight: 700; /* Bolder Title */
-            margin-bottom: 2.2rem !important; /* Increased margin */
-            font-size: 2.1rem; /* Slightly larger title */
+            font-weight: 700;
+            margin-bottom: 0 !important; /* Removed margin as it's handled by the wrapper now */
+            font-size: 2.1rem;
             text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.05);
+            transition: color var(--transition-speed) var(--transition-easing);
         }
+        body.dark-mode h1 {
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
         h2 {
-            font-size: 1.5rem; /* Larger headings */
-            font-weight: 500; /* Medium weight */
-            color: var(--dark-gray);
-            margin-bottom: 20px; /* Increased */
+            font-size: 1.5rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
             padding-bottom: 10px;
-            border-bottom: 3px solid var(--primary-color); /* Thicker border */
+            border-bottom: 3px solid var(--primary-color);
             display: inline-block;
+            transition: color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing);
         }
 
         /* --- Main Layout --- */
@@ -77,60 +220,73 @@
 
         /* --- Chat Interface Section (Left Column) --- */
         #chat-column {
-            border-right: 1px solid var(--medium-gray);
-            padding-right: 35px; /* Increased padding */
+            border-right: 1px solid var(--border-secondary);
+            padding-right: 35px;
             display: flex;
             flex-direction: column;
-            height: calc(85vh - 110px); /* Adjust height */
+            height: calc(85vh - 110px);
             min-height: 500px;
-            transition: opacity 0.5s ease, filter 0.5s ease;
+            transition: opacity 0.5s ease, filter 0.5s ease, border-color var(--transition-speed) var(--transition-easing);
         }
         #chat-container {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            background-color: #fdfdff;
-            border: 1px solid var(--medium-gray);
+            background-color: var(--bg-content);
+            border: 1px solid var(--border-secondary);
             border-radius: var(--border-radius-md);
             padding: 20px;
             overflow: hidden;
-            box-shadow: inset 0 1px 4px rgba(0,0,0,0.04);
+            box-shadow: var(--shadow-inset);
+             transition: background-color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing);
         }
         #chat-column.disabled {
             opacity: 0.5;
             filter: grayscale(50%);
             pointer-events: none;
         }
+        body.dark-mode #chat-column.disabled {
+             filter: grayscale(70%); /* Increase grayscale for dark */
+        }
         #chat-column.disabled #chat-placeholder { display: block; }
         #chat-placeholder {
-             display: none; text-align: center; padding: 60px 15px;
-             color: #888; font-style: italic; font-size: 0.9rem;
+             display: none;
+             text-align: center; padding: 60px 15px;
+             color: var(--text-muted); font-style: italic; font-size: 0.9rem;
              align-self: center; margin-top: auto; margin-bottom: auto;
         }
         #chat-messages {
             flex-grow: 1; overflow-y: auto; margin-bottom: 15px; padding-right: 10px;
-            scrollbar-width: thin; scrollbar-color: var(--primary-color) #f0f0f0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
         }
         #chat-messages::-webkit-scrollbar { width: 6px; }
-        #chat-messages::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 3px;}
-        #chat-messages::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 3px; border: 1px solid #f0f0f0;}
+        #chat-messages::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 3px;}
+        #chat-messages::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb); border-radius: 3px; border: 1px solid var(--scrollbar-track);}
 
-        .chat-message { /* Existing Bubble Style */
-            margin-bottom: 15px; padding: 12px 18px; /* Slightly larger padding */
+        .chat-message {
+            margin-bottom: 15px; padding: 12px 18px;
             border-radius: var(--border-radius-lg); max-width: 85%;
-            word-wrap: break-word; line-height: 1.55; /* Increased line height */
+            word-wrap: break-word; line-height: 1.55;
             box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeSlideIn 0.4s ease forwards;
+            color: var(--text-primary); /* Default text color for messages */
+            transition: background-color var(--transition-speed) var(--transition-easing), color var(--transition-speed) var(--transition-easing);
         }
+         @keyframes fadeSlideIn { to { opacity: 1; transform: translateY(0); } }
+
         .user-message {
-            background-color: #dbeafe; margin-left: auto;
+            background-color: var(--bg-user-msg); margin-left: auto;
             border-bottom-right-radius: var(--border-radius-sm); text-align: right;
         }
         .bot-message {
-            background-color: #e9ecef; margin-right: auto;
+            background-color: var(--bg-bot-msg); margin-right: auto;
             border-bottom-left-radius: var(--border-radius-sm); text-align: left;
         }
         .bot-message.thinking {
-             font-style: italic; color: #6c757d; display: flex; align-items: center;
+             font-style: italic; color: var(--text-muted); display: flex; align-items: center;
         }
         .bot-message.thinking::before {
             content: ''; display: inline-block; width: 16px; height: 16px;
@@ -138,42 +294,71 @@
             border-radius: 50%; animation: spin 1s linear infinite; margin-right: 8px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        body.dark-mode .chat-message { /* Ensure text is light in dark mode */
+            color: var(--dm-text-primary);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
 
         #chat-form { display: flex; margin-top: auto; gap: 10px; }
         #chat-input {
             flex-grow: 1; border-radius: 25px; padding: 10px 18px;
-            border: 1px solid var(--medium-gray);
-            transition: box-shadow var(--transition-speed) var(--transition-easing);
+            border: 1px solid var(--border-secondary);
+            background-color: var(--bg-input);
+            color: var(--text-primary);
+            transition: box-shadow var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing), background-color var(--transition-speed) var(--transition-easing), color var(--transition-speed) var(--transition-easing);
         }
         #chat-input:focus {
              box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.25);
              border-color: var(--primary-color);
         }
+        #chat-input::placeholder {
+             color: var(--text-input-placeholder);
+             opacity: 1;
+        }
+        body.dark-mode #chat-input {
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+        body.dark-mode #chat-input:focus {
+            background-color: #4f4f4f;
+        }
+
         #send-button {
             border-radius: 50%; width: 45px; height: 45px; padding: 0;
             display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-            transition: background-color var(--transition-speed) var(--transition-easing), transform var(--transition-speed) var(--transition-easing);
+            transition: background-color var(--transition-speed) var(--transition-easing), transform var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing), filter var(--transition-speed) var(--transition-easing);
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
         }
-        #send-button:hover { transform: scale(1.1); }
+        #send-button:hover {
+            transform: scale(1.1);
+            filter: brightness(115%); /* Use brightness for hover */
+             /* Ensure base color doesn't change on hover */
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
         #send-button svg { width: 20px; height: 20px; fill: white; }
 
-        /* --- NEW: Example Questions Styling --- */
+
         #example-questions {
             margin-top: 12px;
             padding-top: 10px;
-            border-top: 1px dashed var(--medium-gray);
+            border-top: 1px dashed var(--border-secondary);
             text-align: left;
+            transition: border-color var(--transition-speed) var(--transition-easing);
         }
         #example-questions small {
             display: block;
             margin-bottom: 8px;
             font-size: 0.8rem;
-            color: var(--dark-gray);
+            color: var(--text-secondary);
             font-weight: 500;
+            transition: color var(--transition-speed) var(--transition-easing);
         }
         .suggestion-btn {
-            background-color: #f0f2f5;
-            border: 1px solid #d5d9de;
+            background-color: var(--bg-suggestion);
+            border: 1px solid var(--border-suggestion);
             color: var(--primary-color);
             font-size: 0.75rem;
             padding: 4px 10px;
@@ -181,28 +366,41 @@
             margin-right: 6px;
             margin-bottom: 6px;
             cursor: pointer;
-            transition: background-color 0.2s ease, border-color 0.2s ease;
-            text-decoration: none; /* If using <a> tags */
-            display: inline-block; /* If using <a> tags */
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, filter 0.2s ease;
+            text-decoration: none;
+            display: inline-block;
         }
         .suggestion-btn:hover {
-            background-color: #e2e6ea;
-            border-color: #c8ced3;
-            color: #0a58ca;
+            background-color: var(--bg-suggestion-hover);
+            border-color: var(--border-suggestion-hover);
+            filter: brightness(110%);
+            /* Keep text color same unless specific dark mode override */
+            color: var(--primary-color);
         }
+         body.dark-mode .suggestion-btn {
+             color: var(--dm-text-primary); /* Make text light */
+             background-color: var(--dm-bg-suggestion);
+             border-color: var(--dm-border-suggestion);
+         }
+         body.dark-mode .suggestion-btn:hover {
+             color: var(--dm-primary-color); /* Red hover text */
+             background-color: var(--dm-bg-suggestion-hover);
+             border-color: var(--dm-border-suggestion-hover);
+             filter: brightness(115%);
+         }
 
 
         /* --- Content Section (Right Column) --- */
         #content-column {
-            padding-left: 35px; /* Increased padding */
-            max-height: calc(85vh - 110px); /* Match chat height */
+            padding-left: 35px;
+            max-height: calc(85vh - 110px);
             overflow-y: auto; scrollbar-width: thin;
-            scrollbar-color: var(--primary-color) #f0f0f0;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
             position: relative;
         }
         #content-column::-webkit-scrollbar { width: 6px; }
-        #content-column::-webkit-scrollbar-track { background: #f0f0f0; border-radius: 3px;}
-        #content-column::-webkit-scrollbar-thumb { background-color: var(--primary-color); border-radius: 3px; border: 1px solid #f0f0f0;}
+        #content-column::-webkit-scrollbar-track { background: var(--scrollbar-track); border-radius: 3px;}
+        #content-column::-webkit-scrollbar-thumb { background-color: var(--scrollbar-thumb); border-radius: 3px; border: 1px solid var(--scrollbar-track);}
 
         /* --- Upload Form Styling & Animation --- */
         #form-wrapper {
@@ -217,30 +415,128 @@
             opacity: 1; margin-bottom: 30px; padding-top: 0; padding-bottom: 0; border: none;
         }
         #upload-form {
-            padding: 30px; /* Increased padding */
-            border: 1px solid var(--medium-gray);
+            padding: 30px;
+            border: 1px solid var(--border-secondary);
             border-radius: var(--border-radius-md);
-            background-color: #fdfdff; margin-bottom: 0;
+            background-color: var(--bg-content); margin-bottom: 0;
+             transition: background-color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing);
         }
-        .form-label { font-weight: 500; margin-bottom: 0.6rem; } /* Slightly more spacing */
+        .form-label {
+            font-weight: 500; margin-bottom: 0.6rem;
+            color: var(--text-secondary);
+            transition: color var(--transition-speed) var(--transition-easing);
+        }
+        .form-control, .form-select {
+             background-color: var(--bg-input);
+             color: var(--text-primary);
+             border: 1px solid var(--border-secondary);
+             transition: background-color var(--transition-speed) var(--transition-easing), color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing), box-shadow var(--transition-speed) var(--transition-easing);
+        }
+        .form-control::placeholder {
+             color: var(--text-input-placeholder);
+             opacity: 1;
+        }
+        .form-control:focus, .form-select:focus {
+             background-color: var(--bg-input);
+             color: var(--text-primary);
+             border-color: var(--primary-color);
+             box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.25);
+        }
+        body.dark-mode .form-control, body.dark-mode .form-select {
+             box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+         body.dark-mode .form-select {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23f5f5f5' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+         }
+         body.dark-mode .form-control:focus, body.dark-mode .form-select:focus {
+             background-color: #4f4f4f; /* Darker focus for inputs */
+         }
+
         .form-control-sm, .form-select-sm {
-            padding: 0.45rem 0.9rem; font-size: 0.9rem; /* Slightly larger padding */
+            padding: 0.45rem 0.9rem; font-size: 0.9rem;
             border-radius: var(--border-radius-sm);
         }
+        .form-text {
+             color: var(--text-muted);
+             transition: color var(--transition-speed) var(--transition-easing);
+        }
+
+        /* --- Primary Button Styling (Generate Report Button) --- */
         .btn-primary {
-            background-color: var(--primary-color); border-color: var(--primary-color);
-            padding: 12px 22px; /* Increased padding */
-            font-size: 1rem; font-weight: 500; /* Medium weight */
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            padding: 12px 22px;
+            font-size: 1rem; font-weight: 500;
             border-radius: var(--border-radius-sm);
-            transition: background-color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing), box-shadow var(--transition-speed) var(--transition-easing);
+            color: #fff; /* Ensure text is white */
+            transition: background-color var(--transition-speed) var(--transition-easing),
+                        border-color var(--transition-speed) var(--transition-easing),
+                        box-shadow var(--transition-speed) var(--transition-easing),
+                        filter var(--transition-speed) var(--transition-easing),
+                        color var(--transition-speed) var(--transition-easing),
+                        opacity var(--transition-speed) var(--transition-easing);
         }
+
+        /* Generic Hover/Focus/Active - Use Brightness */
         .btn-primary:hover {
-            background-color: #0b5ed7; border-color: #0a58ca;
+            filter: brightness(115%);
+            /* Explicitly set colors to avoid inheriting Bootstrap's blue */
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        .spinner-border { display: none; margin-right: 8px; width: 1.1rem; height: 1.1rem; }
+        .btn-primary:focus,
+        .btn-primary:active {
+            filter: brightness(110%);
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: #fff;
+            box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.5), 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:disabled,
+        .btn-primary.disabled {
+            filter: none;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            opacity: 0.65;
+        }
+
+        /* Specific Dark Mode Overrides for btn-primary */
+        body.dark-mode .btn-primary {
+             /* Base state already covered by variable swap, but can reiterate if needed */
+             background-color: var(--dm-primary-color);
+             border-color: var(--dm-primary-color);
+             color: #fff;
+        }
+        body.dark-mode .btn-primary:hover {
+             filter: brightness(120%); /* Slightly more brightness for dark */
+             background-color: var(--dm-primary-color); /* Keep red */
+             border-color: var(--dm-primary-color); /* Keep red */
+             color: #fff; /* Keep white */
+             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Darker shadow */
+        }
+        body.dark-mode .btn-primary:focus,
+        body.dark-mode .btn-primary:active {
+             filter: brightness(110%); /* Keep red */
+             background-color: var(--dm-primary-color); /* Keep red */
+             border-color: var(--dm-primary-color); /* Keep red */
+             color: #fff; /* Keep white */
+             /* Darker focus ring and shadow */
+             box-shadow: 0 0 0 0.2rem rgba(var(--dm-primary-color-rgb), 0.5), 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        body.dark-mode .btn-primary:disabled,
+        body.dark-mode .btn-primary.disabled {
+             filter: none;
+             background-color: var(--dm-primary-color); /* Keep red */
+             border-color: var(--dm-primary-color); /* Keep red */
+             opacity: 0.5; /* Maybe slightly more transparent in dark mode */
+        }
+
+        .spinner-border { display: none; margin-right: 8px; width: 1.1rem; height: 1.1rem; color: currentColor; }
         #upload-form.processing .spinner-border { display: inline-block; }
-        #upload-form.processing button[type="submit"] { cursor: not-allowed; opacity: 0.7; }
+        #upload-form.processing button[type="submit"] { cursor: not-allowed; opacity: 0.7; } /* Keep generic processing style */
+
 
         /* --- State When Results are Loaded --- */
         body.results-loaded #form-wrapper {
@@ -251,232 +547,444 @@
         }
 
         /* --- Result Area Styling & Animation --- */
-                /* --- Result Area Styling & Animation --- */
-                .result-area {
-            margin-top: 0; /* No margin needed as form wrapper collapses */
-            opacity: 0; /* Initially hidden */
-            transform: translateY(20px); /* Start slightly lower */
-            transition: opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s; /* Fade/slide in *after* form starts fading out */
-            text-align: center; /* <<< ADD THIS LINE TO CENTER INLINE/INLINE-BLOCK CHILDREN */
+         .result-area {
+             margin-top: 0;
+             opacity: 0;
+             transform: translateY(20px);
+             transition: opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s;
+             text-align: center;
+         }
+         body.results-loaded .result-area {
+             opacity: 1;
+             transform: translateY(0);
+         }
+
+        /* --- Patient Info Section Styling --- */
+        #patient-info-section {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-secondary);
+             transition: border-color var(--transition-speed) var(--transition-easing);
         }
-        body.results-loaded .result-area {
-            opacity: 1;
-            transform: translateY(0);
+        #patient-info-section h3 {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            border-bottom: none;
+            display: inline-block;
+             transition: color var(--transition-speed) var(--transition-easing);
         }
+        #patient-info-data {
+            font-size: 0.95rem;
+            color: var(--text-primary);
+             transition: color var(--transition-speed) var(--transition-easing);
+        }
+         #patient-info-data span {
+            margin: 0 8px;
+            color: var(--text-muted);
+             transition: color var(--transition-speed) var(--transition-easing);
+         }
+         #patient-info-data strong {
+             font-weight: 500;
+             color: var(--text-secondary);
+             transition: color var(--transition-speed) var(--transition-easing);
+         }
+
+         /* Adjust result columns */
+         .result-area .row .col-md-6 {
+             display: flex;
+             flex-direction: column;
+             align-items: center;
+             margin-bottom: 20px;
+         }
+          .result-area .row .col-md-6 h2 {
+             width: 100%;
+             text-align: center;
+         }
+         .img-preview-container, .report-box-container {
+              width: 100%;
+              max-width: 500px;
+              margin: 0 auto;
+         }
+
 
         /* --- Image Preview & Zoom Styling --- */
-        #image-result-area { position: relative; }
+        #image-result-area { position: relative; width: 100%; }
         .img-preview {
-            max-width: 100%; height: auto; border: 1px solid var(--medium-gray);
-            border-radius: var(--border-radius-md); box-shadow: var(--box-shadow-soft);
-            display: block; transition: box-shadow var(--transition-speed) var(--transition-easing);
-            cursor: crosshair; /* Retain zoom cursor */
+            max-width: 100%; height: auto; border: 1px solid var(--border-secondary);
+            border-radius: var(--border-radius-md); box-shadow: var(--shadow-soft);
+            display: block;
+            margin: 0 auto;
+            transition: box-shadow var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing);
+            cursor: crosshair;
         }
-        .img-preview:hover { box-shadow: var(--box-shadow-hover); }
-        #zoom-preview-panel { /* Existing zoom panel */
+        .img-preview:hover { box-shadow: var(--shadow-hover); }
+
+        #zoom-preview-panel {
             position: absolute; width: 250px; height: 250px;
-            background-color: var(--white); border: 2px solid var(--primary-color);
-            border-radius: var(--border-radius-md); box-shadow: var(--box-shadow-hover);
+            background-color: var(--bg-content);
+            border: 2px solid var(--primary-color);
+            border-radius: var(--border-radius-md); box-shadow: var(--shadow-hover);
             background-repeat: no-repeat; background-size: 0 0; background-position: 0 0;
             opacity: 0; visibility: hidden;
-            transition: opacity 0.2s ease-out, visibility 0s linear 0.2s;
+            transition: opacity 0.2s ease-out, visibility 0s linear 0.2s, background-color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing);
             pointer-events: none; z-index: 100; overflow: hidden;
             top: 0; left: calc(100% + 15px);
         }
-        @media (max-width: 1200px) {
+        /* Adjust zoom panel side */
+         @media (max-width: 1200px) and (min-width: 992px) {
              #zoom-preview-panel { left: auto; right: calc(100% + 15px); }
+         }
+
+        /* --- Zoom Slider Controls Styling --- */
+        #zoom-controls {
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+            display: none;
         }
-         @media (max-width: 767px) {
-             #zoom-preview-panel { display: none; }
+        body.results-loaded #zoom-controls {
+            display: block;
+            opacity: 1;
+        }
+        #zoom-controls .form-label-sm {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            transition: color var(--transition-speed) var(--transition-easing);
+        }
+        #zoom-slider {
+            cursor: pointer;
+             /* Style the range input */
+             accent-color: var(--primary-color); /* Modern way to color thumb/track */
+             transition: accent-color var(--transition-speed) var(--transition-easing);
+        }
+        /* Fallback/more specific styling if needed */
+        body.dark-mode #zoom-slider::-webkit-slider-runnable-track { background-color: #555; }
+        body.dark-mode #zoom-slider::-moz-range-track { background-color: #555; }
+        /* Thumb is handled by accent-color */
+
+
+        /* Hide zoom panel & slider on medium/small screens */
+         @media (max-width: 991.98px) {
+             #zoom-preview-panel, #zoom-controls {
+                  display: none !important;
+             }
              .img-preview { cursor: default; }
          }
 
         /* --- Report Box Styling --- */
         .report-box {
-            border: 1px solid var(--medium-gray); padding: 25px; /* Increased padding */
-            background-color: #fdfdff; border-radius: var(--border-radius-md);
+            border: 1px solid var(--border-secondary); padding: 25px;
+            background-color: var(--bg-content); border-radius: var(--border-radius-md);
             min-height: 250px;
-            font-family: 'Roboto', 'Consolas', 'Courier New', monospace; /* Use Roboto first, fallback to mono */
-            font-size: 0.95rem; /* Slightly larger report font */
-            color: var(--report-text-color); white-space: pre-wrap; word-wrap: break-word;
-            box-shadow: var(--box-shadow-soft); line-height: 1.7; /* Increased line height */
+            font-family: 'Roboto', 'Consolas', 'Courier New', monospace;
+            font-size: 0.95rem;
+            color: var(--text-report); white-space: pre-wrap; word-wrap: break-word;
+            box-shadow: var(--shadow-soft); line-height: 1.7;
+            text-align: left;
+            transition: background-color var(--transition-speed) var(--transition-easing), color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing), box-shadow var(--transition-speed) var(--transition-easing);
         }
 
-        /* --- NEW: Medical Term Highlighting (Requires Backend Span Insertion) --- */
+        /* --- Medical Term Highlighting --- */
         .medical-term-finding {
-            font-weight: 600; /* Bold */
-            color: var(--highlight-finding-color); /* Red */
-            /* background-color: #fdeaea; /* Optional light red background */
-            /* padding: 0 2px; */
-            /* border-radius: 3px; */
+            font-weight: 600;
+            color: var(--highlight-finding-color);
+            transition: color var(--transition-speed) var(--transition-easing);
         }
         .medical-term-device {
-            font-weight: 600; /* Bold */
-            color: var(--highlight-device-color); /* Blue */
-            /* background-color: #e7f1ff; /* Optional light blue background */
-            /* padding: 0 2px; */
-            /* border-radius: 3px; */
+            font-weight: 600;
+            color: var(--highlight-device-color);
+            transition: color var(--transition-speed) var(--transition-easing);
         }
 
-        /* --- NEW: Medical Icon Styling (Requires Backend <i> Insertion) --- */
+        /* --- Medical Icon Styling --- */
         .medical-icon {
             margin-left: 6px;
-            color: var(--dark-gray); /* Subtle icon color */
-            font-size: 0.9em; /* Slightly smaller than text */
-            cursor: help; /* Indicate tooltip */
-            vertical-align: middle; /* Align nicely with text */
+            color: var(--text-secondary);
+            font-size: 0.9em;
+            cursor: help;
+            vertical-align: middle;
+             transition: color var(--transition-speed) var(--transition-easing);
         }
-        .tooltip-inner { /* Style Bootstrap Tooltip */
-           background-color: var(--dark-gray);
-           color: var(--white);
-           font-size: 0.8rem;
-        }
+        /* Bootstrap Tooltip Overrides */
+         .tooltip .tooltip-inner {
+            background-color: var(--text-secondary); /* Default tooltip bg */
+            color: var(--bg-content); /* Default tooltip text */
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            border-radius: var(--border-radius-sm);
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+         }
          .tooltip.bs-tooltip-auto[data-popper-placement^=top] .tooltip-arrow::before,
          .tooltip.bs-tooltip-top .tooltip-arrow::before {
-             border-top-color: var(--dark-gray);
+             border-top-color: var(--text-secondary);
+             transition: border-top-color var(--transition-speed) ease;
          }
-         /* Add similar rules for bottom, left, right as needed */
+         /* Add other arrow directions if needed */
+
+         body.dark-mode .tooltip .tooltip-inner {
+            background-color: #f0f0f0; /* Light background for dark mode tooltips */
+            color: #333; /* Dark text */
+         }
+         body.dark-mode .tooltip.bs-tooltip-auto[data-popper-placement^=top] .tooltip-arrow::before,
+         body.dark-mode .tooltip.bs-tooltip-top .tooltip-arrow::before {
+             border-top-color: #f0f0f0;
+         }
+         /* Add other arrow directions for dark mode if needed */
 
 
         /* --- Hidden element for report context --- */
         #report-context-data { display: none; }
 
         /* --- Reset Button --- */
-        #reset-button {
-             display: none; margin: 30px auto 0; /* Increased top margin */
-             opacity: 0; transition: opacity var(--transition-speed) ease-out 0.5s;
-             padding: 10px 20px; /* Match primary button padding */
-             font-size: 0.95rem; border-radius: var(--border-radius-sm);
-             align-items: center; justify-content: center; gap: 8px;
+         #reset-button {
+              display: none;
+              margin-top: 30px;
+              margin-bottom: 0;
+              opacity: 0; transition: opacity var(--transition-speed) var(--transition-easing) 0.5s, color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing), background-color var(--transition-speed) var(--transition-easing);
+              padding: 10px 20px;
+              font-size: 0.95rem; border-radius: var(--border-radius-sm);
+              align-items: center; justify-content: center; gap: 8px;
+              color: #6c757d;
+              border: 1px solid #6c757d;
+              background-color: transparent;
+         }
+         #reset-button:hover {
+              color: #fff;
+              background-color: #5c636a; /* Slightly darker secondary */
+              border-color: #565e64;
+         }
+         body.dark-mode #reset-button {
+              color: var(--dm-text-secondary);
+              border-color: var(--dm-border-secondary); /* Use darker border */
+         }
+         body.dark-mode #reset-button:hover {
+              color: var(--dm-bg-primary);
+              background-color: var(--dm-text-secondary);
+              border-color: var(--dm-text-secondary);
+         }
+         body.results-loaded #reset-button {
+             display: inline-flex;
+             opacity: 1;
+         }
+         #reset-button svg { width: 1em; height: 1em; fill: currentColor; }
+
+        /* --- Student Notes Section Styling --- */
+        #student-notes-section {
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 1px solid var(--border-secondary);
+            text-align: left;
+            opacity: 0;
+            display: none;
+            transition: opacity 0.6s ease-out 0.4s, border-color var(--transition-speed) var(--transition-easing);
         }
-        body.results-loaded #reset-button { display: inline-flex; opacity: 1; }
-        #reset-button svg { width: 1em; height: 1em; }
+        body.results-loaded #student-notes-section {
+            display: block;
+            opacity: 1;
+        }
+        .notes-input-area {
+            background-color: var(--bg-content);
+            padding: 20px;
+            border-radius: var(--border-radius-md);
+            border: 1px solid var(--border-secondary);
+            box-shadow: var(--shadow-inset);
+            transition: background-color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing);
+        }
+        #student-notes-textarea,
+        #student-notes-keywords {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            resize: vertical;
+            background-color: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border-secondary);
+            transition: background-color var(--transition-speed) var(--transition-easing), color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing), box-shadow var(--transition-speed) var(--transition-easing);
+        }
+         #student-notes-textarea {
+            min-height: 150px;
+        }
+        #student-notes-textarea::placeholder,
+        #student-notes-keywords::placeholder {
+             color: var(--text-input-placeholder);
+             opacity: 1;
+        }
+        #student-notes-textarea:focus,
+        #student-notes-keywords:focus {
+            background-color: var(--bg-input);
+            color: var(--text-primary);
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(var(--primary-color-rgb), 0.25);
+        }
+        body.dark-mode #student-notes-textarea,
+        body.dark-mode #student-notes-keywords {
+             box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+        body.dark-mode #student-notes-textarea:focus,
+        body.dark-mode #student-notes-keywords:focus {
+             background-color: #4f4f4f;
+        }
+
+
+        .notes-input-area label.form-label {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+             transition: color var(--transition-speed) var(--transition-easing);
+        }
+        #copy-notes-button {
+            font-weight: 500;
+             color: var(--primary-color);
+             border: 1px solid var(--primary-color); /* Use 1px border for outline */
+             background-color: transparent;
+             transition: color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing), background-color var(--transition-speed) var(--transition-easing);
+        }
+        #copy-notes-button:hover {
+            color: #fff;
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+         body.dark-mode #copy-notes-button {
+             /* Base color/border already handled by variable swap */
+         }
+        body.dark-mode #copy-notes-button:hover {
+             color: #fff; /* Ensure text stays white on red bg */
+             background-color: var(--dm-primary-color);
+             border-color: var(--dm-primary-color);
+        }
+         /* Style for the 'Copied' state */
+         #copy-notes-button:disabled {
+              opacity: 0.8; /* Make slightly transparent when copied */
+              cursor: default;
+              /* Use green tones for success feedback */
+              background-color: #d1e7dd;
+              border-color: #badbcc;
+              color: #0f5132;
+         }
+          body.dark-mode #copy-notes-button:disabled {
+              background-color: #143625; /* Dark green */
+              border-color: #1c4a32;
+              color: #75b798; /* Lighter green text */
+          }
+
+        #copy-feedback {
+             font-weight: 500;
+             font-size: 0.85rem;
+             opacity: 0;
+             transition: opacity 0.5s ease, color 0.5s ease;
+             color: #198754; /* Default success color */
+        }
+         body.dark-mode #copy-feedback.text-success {
+             color: #61e7a9; /* Lighter green for dark mode */
+         }
+         body.dark-mode #copy-feedback.text-danger {
+             color: #ff8a80; /* Lighter red for dark mode */
+         }
+
+        /* --- Alert Styling Adaptation --- */
+         .alert {
+             /* Rely on Bootstrap defaults mostly, override where needed */
+             transition: background-color var(--transition-speed) var(--transition-easing), color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing);
+         }
+         /* Example: Warning Alert */
+         body.dark-mode .alert-warning {
+             background-color: #4d3c11;
+             border-color: #664d03;
+             color: #ffecb5;
+         }
+         /* Example: Danger Alert */
+         body.dark-mode .alert-danger {
+             background-color: #4c161c;
+             border-color: #842029;
+             color: #fcc8cb;
+         }
+         /* Add other alert types (info, success) if used and need dark overrides */
+         body.dark-mode .btn-close {
+             filter: invert(1) grayscale(100%) brightness(200%);
+         }
 
 
         /* --- Responsive adjustments --- */
-        @media (max-width: 991.98px) {
+        @media (max-width: 991.98px) { /* Medium screens and below */
             #chat-column {
-                border-right: none; border-bottom: 1px solid var(--medium-gray);
-                padding-right: 0; margin-bottom: 30px; /* Increased */
-                height: 60vh; /* Adjusted height */ min-height: 450px;
+                border-right: none; border-bottom: 1px solid var(--border-secondary);
+                padding-right: 0; margin-bottom: 30px;
+                height: 60vh; min-height: 450px;
             }
             #content-column {
                 padding-left: 0; max-height: none; overflow-y: visible;
             }
-            .container-fluid { padding: 25px; } /* Increased */
+            .container-fluid { padding: 25px; }
             h1 { font-size: 1.9rem; }
             h2 { font-size: 1.4rem; }
-            .result-area .row > div { width: 100%; }
-             #image-result-area { margin-bottom: 25px; }
+             .result-area .row > div[class*="col-md-"] {
+                 width: 100%;
+                 margin-bottom: 25px;
+             }
+        }
+        @media (max-width: 767.98px) { /* Small screens */
+             #title-and-toggle { flex-direction: column; align-items: center; gap: 10px; } /* Stack title and toggle */
+             h1 { font-size: 1.7rem; text-align: center; } /* Center title */
+             h2 { font-size: 1.3rem; }
+             .container-fluid { padding: 20px; }
+             #chat-column { height: 55vh; min-height: 400px; }
+             .btn-primary, #reset-button { font-size: 0.9rem; padding: 10px 18px;}
+             #send-button { width: 40px; height: 40px; }
+             #send-button svg { width: 18px; height: 18px; }
+             #chat-input { padding: 8px 15px; }
+             .report-box { padding: 20px; font-size: 0.9rem; min-height: 200px;}
+             #student-notes-textarea { min-height: 120px; }
         }
 
-         /* Set primary color RGB for focus shadow */
-         body { --primary-color-rgb: 13, 110, 253; }
-        
-         /* --- NEW: Patient Info Section Styling --- */
-        #patient-info-section {
-            text-align: center;
-            margin-bottom: 25px; /* Space below patient info */
-            padding-bottom: 15px; /* Space below the text */
-            border-bottom: 1px solid var(--medium-gray); /* Separator line */
-        }
-        #patient-info-section h3 {
-            font-size: 1.25rem; /* Slightly smaller heading */
-            font-weight: 500;
-            color: var(--dark-gray);
-            margin-bottom: 10px; /* Space between heading and data */
-            border-bottom: none; /* Remove the underline from general h2 style */
-            display: inline-block; /* Keep centered */
-        }
-        #patient-info-data {
-            font-size: 0.95rem;
-            color: var(--text-color);
-        }
-         #patient-info-data span {
-            margin: 0 8px; /* Spacing around the separators */
-            color: var(--medium-gray); /* Make separators lighter */
-         }
-         #patient-info-data strong {
-             font-weight: 500; /* Slightly bolder labels */
-             color: var(--dark-gray);
-         }
-
-        /* --- Adjusted Result Area Styling --- */
-        .result-area {
-            margin-top: 0;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s;
-            /* text-align: center; --- REMOVE this if you want columns aligned left/right */
-            /* The patient info section handles its own centering */
-        }
-        body.results-loaded .result-area {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-         /* Ensure result columns take appropriate space */
-         .result-area .row .col-md-6 {
-             /* text-align: left; /* Align content within columns to the left */
-             /* Centering the h2 within the column if desired */
-             display: flex;
-             flex-direction: column;
-             align-items: center; /* Center content horizontally */
-             margin-bottom: 20px; /* Add space between columns on smaller screens */
-         }
-         .result-area .row .col-md-6 h2 {
-             width: 100%; /* Make h2 take full width */
-             text-align: center; /* Center the h2 text */
-         }
-         .img-preview-container, .report-box-container {
-              width: 100%; /* Ensure containers take full width of the column */
-              max-width: 500px; /* Optional: Limit max width */
-         }
-         .img-preview {
-             display: block; /* Keep image block */
-             margin: 0 auto; /* Center image if container is wider */
-             max-width: 100%; /* Ensure it fits */
-         }
-         .report-box {
-             text-align: left; /* Keep report text left-aligned */
-         }
     </style>
 </head>
 <!-- Add 'results-loaded' class server-side if results exist -->
 <body class="{{ 'results-loaded' if report or image_data else '' }}">
     <div class="container-fluid">
-        <h1 class="mb-4 text-center">Chest X-ray Report Generation Application Via VLM and LLM</h1>
+        <!-- MODIFIED: Wrap H1 and add Toggle Button -->
+        <div id="title-and-toggle" class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="flex-grow-1">Chest X-ray Report Generation</h1> 
+            <button id="darkModeToggle" class="btn btn-sm flex-shrink-0" aria-label="Toggle dark mode" title="Toggle dark mode">
+                <i class="fas fa-moon"></i> <!-- Moon icon initially -->
+            </button>
+        </div>
 
         <!-- Flash Messages -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-              <div class="alert alert-{{ category }} alert-dismissible fade show mb-3" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              </div>
-            {% endfor %}
-          {% endif %}
-        {% endwith %}
+        <div id="flash-message-container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+              {% if messages %}
+                {% for category, message in messages %}
+                  <div class="alert alert-{{ category }} alert-dismissible fade show mb-3" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                  </div>
+                {% endfor %}
+              {% endif %}
+            {% endwith %}
+        </div>
 
         <!-- Main Row: Chat on Left, Content on Right -->
         <div class="row main-row">
 
             <!-- Chat Column (Left) -->
             <div class="col-lg-5" id="chat-column" class="{{ 'disabled' if not report or not chatbot_available }}">
-                 <h2>Chat about Report</h2>
+                 <h2><i class="fas fa-comments me-2"></i>Chat about Report</h2>
                  <small class="text-muted mb-2 d-block">Ask questions based *only* on the generated report.</small>
 
-                 {% if not chatbot_available %}
-                     <div class="alert alert-warning small p-2">Chatbot (Llama 3.1) is not available. Please check server logs.</div>
+                 {% if report and not chatbot_available %}
+                     <div class="alert alert-warning small p-2 mt-2">Chatbot (Llama 3.1) is not available or failed to load. Please check server logs.</div>
                  {% endif %}
 
                 <div id="chat-container">
                      <div id="chat-placeholder">Generate a report first to enable chat.</div>
                     <div id="chat-messages">
-                        <!-- Chat messages will appear here -->
-                        <!-- Example Bot Message: -->
-                        <!-- <div class="chat-message bot-message">Welcome! Ask me about the report findings.</div> -->
+                        {% if report and chatbot_available %}
+                         <div class="chat-message bot-message" style="opacity: 1; transform: none;">Welcome! Ask me about the findings, impression, or specific details in the report above.</div>
+                         {% endif %}
                     </div>
                     <form id="chat-form" action="javascript:void(0);">
                         <input type="text" id="chat-input" class="form-control" placeholder="Type your question..." autocomplete="off" {% if not report or not chatbot_available %}disabled{% endif %}>
@@ -484,77 +992,86 @@
                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.478 2.405a.75.75 0 00-.926.94l2.432 7.905H13.5a.75.75 0 010 1.5H4.984l-2.432 7.905a.75.75 0 00.926.94 60.519 60.519 0 0018.445-8.986.75.75 0 000-1.218A60.517 60.517 0 003.478 2.405z" /></svg>
                         </button>
                     </form>
-                    <!-- NEW: Example Questions Section -->
                     <div id="example-questions" {% if not report or not chatbot_available %}style="display: none;"{% endif %}>
                         <small>Example Questions:</small>
                         <button class="suggestion-btn">What are the main findings?</button>
                         <button class="suggestion-btn">Are there any tubes or lines mentioned?</button>
                         <button class="suggestion-btn">Summarize the impression.</button>
                         <button class="suggestion-btn">Is the heart size normal?</button>
-                        <!-- Add more suggestions as needed -->
+                        <button class="suggestion-btn">Any signs of pleural effusion?</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Content Column (Right - Form, Image, Report) -->
+            <!-- Content Column (Right - Form, Image, Report, Notes) -->
             <div class="col-lg-7" id="content-column">
 
-                <!-- Form Section Wrapper -->
+                <!-- Form Section Wrapper (for animation) -->
                 <div id="form-wrapper">
-                    <h2>Generate Report</h2>
-                    <form id="upload-form" method="post" enctype="multipart/form-data" action="/predict">
+                    <h2><i class="fas fa-upload me-2"></i>Generate Report</h2>
+                    <form id="upload-form" method="post" enctype="multipart/form-data" action="{{ url_for('predict') }}">
                         <div class="mb-3">
                             <label for="imageUpload" class="form-label">1. Upload Chest X-Ray Image:</label>
                             <input class="form-control form-control-sm" type="file" id="imageUpload" name="image" accept="image/png, image/jpeg, image/jpg" required>
+                            <div class="form-text">Allowed formats: PNG, JPG, JPEG. Filename format like '...-View-Age-Gender-Ethnicity.png' helps extract patient info.</div>
                         </div>
                         <div class="mb-3">
                             <label for="vlmSelect" class="form-label">2. Choose Vision-Language Model:</label>
                             <select class="form-select form-select-sm" id="vlmSelect" name="vlm_choice">
                                 <option value="swin_t5_chexpert" selected>Swin-T5 (CheXpert Trained)</option>
-                                <!-- Add other models here -->
+                                <!-- Add other VLM options here if available -->
                             </select>
                         </div>
                         <div class="mb-3">
                             <label for="maxLength" class="form-label">3. Max Report Length (tokens):</label>
                             <input type="number" class="form-control form-control-sm" id="maxLength" name="max_length" value="100" min="10" max="512">
+                            <div class="form-text">Adjusts the maximum length of the generated report (default: 100).</div>
                         </div>
-                        <button type="submit" class="btn btn-primary w-100">
+                        <button type="submit" class="btn btn-primary w-100 mt-2">
                              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                             Generate Report
+                             <i class="fas fa-file-medical-alt me-1"></i> Generate Report
                         </button>
                     </form>
                 </div>
                 <!-- End Form Section -->
 
-                <!-- Result Section -->
+                <!-- Result Section (Only render if data exists) -->
                 {% if report or image_data %}
                 <div class="result-area">
-
-                    <!-- ================== NEW: Patient Info Section ================== -->
+                    <!-- Patient Info -->
                     {% if patient_info %}
                     <div id="patient-info-section">
-                        <h3>Patient Information</h3>
-                        <p id="patient-info-data">
-                            <strong>View:</strong> {{ patient_info.view | e }}
-                            <span>|</span>
-                            <strong>Age:</strong> {{ patient_info.age | e }}
-                            <span>|</span>
-                            <strong>Gender:</strong> {{ patient_info.gender | e }}
-                            <span>|</span>
-                            <strong>Ethnicity:</strong> {{ patient_info.ethnicity | e }}
-                        </p>
+                       <h3><i class="fas fa-user-md me-2"></i>Patient Information</h3>
+                       <p id="patient-info-data">
+                           <strong>View:</strong> {{ patient_info.view | e }}
+                           <span>|</span>
+                           <strong>Age:</strong> {{ patient_info.age | e }}
+                           <span>|</span>
+                           <strong>Gender:</strong> {{ patient_info.gender | e }}
+                           <span>|</span>
+                           <strong>Ethnicity:</strong> {{ patient_info.ethnicity | e }}
+                       </p>
+                    </div>
+                    {% elif image_data %}
+                     <div id="patient-info-section">
+                        <p class="text-muted small"><em>Patient information could not be parsed from the filename.</em></p>
                     </div>
                     {% endif %}
 
+                    <!-- Image and Report Row -->
                     <div class="row">
                         <!-- Image Column -->
                         {% if image_data %}
                         <div class="col-md-6">
-                             <div class="img-preview-container" id="image-result-area">
-                                <h2>Uploaded Image:</h2>
-                                <img id="uploaded-image" src="data:image/jpeg;base64,{{ image_data }}" alt="Uploaded Image" class="img-preview">
+                            <div class="img-preview-container" id="image-result-area">
+                                <h2><i class="fas fa-image me-2"></i>Uploaded Image</h2>
+                                <img id="uploaded-image" src="data:image/jpeg;base64,{{ image_data }}" alt="Uploaded Chest X-ray" class="img-preview">
                                 <div id="zoom-preview-panel"></div>
-                                <!-- Note: Annotations/Overlays would require backend data and complex JS -->
+                                <small class="d-block text-muted mt-2">Hover over image to zoom (on desktop).</small>
+                                <div id="zoom-controls" class="mt-3">
+                                    <label for="zoom-slider" class="form-label form-label-sm mb-1 d-block text-center">Zoom Level: <span id="zoom-value">2.0</span>x</label>
+                                    <input type="range" class="form-range" id="zoom-slider" min="1" max="5" step="0.1" value="2">
+                                </div>
                             </div>
                         </div>
                         {% endif %}
@@ -563,16 +1080,22 @@
                         {% if report %}
                         <div class="col-md-6">
                             <div class="report-box-container">
-                                <h2>Generated Report:</h2>
+                                <h2><i class="fas fa-file-alt me-2"></i>Generated Report</h2>
                                 <div class="report-box">
-                                    {# IMPORTANT: Backend should process the report to add spans/icons #}
-                                    {# Example: "Findings consistent with <span class='medical-term-finding'>pneumonia</span>. An <span class='medical-term-device'>endotracheal tube <i class='fas fa-lungs-tube medical-icon' data-bs-toggle='tooltip' title='Endotracheal Tube'></i></span> is noted." #}
-                                    {{ report | safe }} {# Use |safe ONLY if backend sanitizes output OR you trust the source #}
+                                    <!-- Highlight medical terms dynamically -->
+                                    {{ report | safe if report.count('<') > 0 else report | e }}
                                 </div>
                                 <div id="report-context-data" data-report="{{ report|e }}"></div>
                             </div>
                         </div>
-                         {% endif %}
+                        {% elif image_data %}
+                         <div class="col-md-6">
+                             <div class="report-box-container">
+                                <h2><i class="fas fa-file-alt me-2"></i>Generated Report</h2>
+                                 <div class="alert alert-danger">Report generation failed. Please check the logs or try again.</div>
+                             </div>
+                         </div>
+                        {% endif %}
                     </div> <!-- End Result Row -->
 
                      <!-- Reset Button -->
@@ -588,6 +1111,28 @@
                 {% endif %}
                 <!-- End Result Section -->
 
+                <!-- Student Notes Section -->
+                {% if report or image_data %} {# Only show notes if results exist #}
+                <div id="student-notes-section">
+                    <h3><i class="fas fa-user-graduate me-2"></i>Notes for Medical Student</h3>
+                    <div class="notes-input-area p-3 border rounded shadow-sm">
+                        <div class="mb-3">
+                            <label for="student-notes-textarea" class="form-label fw-bold">Observations & Learning Points:</label>
+                            <textarea class="form-control form-control-sm" id="student-notes-textarea" rows="8" placeholder="Enter key observations, differential diagnoses, relevant anatomy, clinical correlations, or questions for the student..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="student-notes-keywords" class="form-label fw-bold">Keywords/Tags:</label>
+                            <input type="text" class="form-control form-control-sm" id="student-notes-keywords" placeholder="e.g., Pneumonia, Cardiomegaly, Atelectasis, PICC Line Placement">
+                        </div>
+                        <button id="copy-notes-button" class="btn btn-sm btn-outline-primary w-100">
+                            <i class="fas fa-copy me-1"></i> Copy Notes & Keywords to Clipboard
+                        </button>
+                         <small id="copy-feedback" class="d-block text-center text-success mt-2">Copied!</small>
+                    </div>
+                </div>
+                {% endif %}
+                <!-- End Student Notes Section -->
+
             </div> <!-- End Content Column -->
         </div> <!-- End Main Row -->
     </div> <!-- End Container -->
@@ -596,39 +1141,85 @@
     <script>
         document.addEventListener('DOMContentLoaded', () => {
 
-            // --- Initialize Bootstrap Tooltips (for potential icons) ---
-            // IMPORTANT: Requires backend to add data-bs-toggle="tooltip" to elements
+            // --- Initialize Bootstrap Tooltips ---
             var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
             var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-              return new bootstrap.Tooltip(tooltipTriggerEl);
+              // Add container: 'body' to prevent tooltip being clipped in tight spaces
+              return new bootstrap.Tooltip(tooltipTriggerEl, { container: 'body', boundary: document.body });
             });
 
-            // --- Form Processing Indicator ---
+            // --- Dark Mode Toggle Functionality ---
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            const bodyElement = document.body;
+            const toggleIcon = darkModeToggle?.querySelector('i');
+
+            const applyTheme = (theme) => {
+                if (!toggleIcon) return;
+                const isDark = theme === 'dark';
+
+                bodyElement.classList.toggle('dark-mode', isDark);
+                toggleIcon.classList.toggle('fa-moon', !isDark);
+                toggleIcon.classList.toggle('fa-sun', isDark);
+                localStorage.setItem('theme', theme);
+                const label = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+                darkModeToggle.setAttribute('aria-label', label);
+                darkModeToggle.setAttribute('title', label); // Update tooltip title attribute
+
+                // Refresh the specific tooltip instance for the toggle button
+                const toggleTooltipInstance = bootstrap.Tooltip.getInstance(darkModeToggle);
+                if (toggleTooltipInstance) {
+                    toggleTooltipInstance.setContent({ '.tooltip-inner': label });
+                }
+            };
+
+            if (darkModeToggle && toggleIcon) {
+                const preferredTheme = localStorage.getItem('theme') ||
+                                      (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                applyTheme(preferredTheme);
+
+                darkModeToggle.addEventListener('click', () => {
+                    const newTheme = bodyElement.classList.contains('dark-mode') ? 'light' : 'dark';
+                    applyTheme(newTheme);
+                });
+
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+                    if (!localStorage.getItem('theme')) { // Only follow system if no manual choice
+                         applyTheme(event.matches ? 'dark' : 'light');
+                    }
+                });
+            }
+            // --- End Dark Mode Toggle ---
+
+
+            // --- Form Processing Indicator & Animation Control ---
             const form = document.getElementById('upload-form');
+            const formWrapper = document.getElementById('form-wrapper');
             const submitButton = form?.querySelector('button[type="submit"]');
             const spinner = submitButton?.querySelector('.spinner-border');
 
-            if (form && submitButton) {
-                 form.addEventListener('submit', function() {
+            if (form && submitButton && formWrapper) {
+                 form.addEventListener('submit', function(e) {
                      const fileInput = document.getElementById('imageUpload');
-                     if (fileInput.files.length > 0) {
-                         form.classList.add('processing');
-                         submitButton.disabled = true;
-                         if (spinner) spinner.style.display = 'inline-block';
-                     }
+                     if (!fileInput || fileInput.files.length === 0) { return; }
+                     form.classList.add('processing');
+                     submitButton.disabled = true;
+                     if (spinner) spinner.style.display = 'inline-block';
+                     submitButton.querySelector('i')?.classList.add('d-none');
                  });
             }
 
              window.addEventListener('pageshow', function(event) {
-                 if (event.persisted || (window.performance && window.performance.getEntriesByType("navigation")[0].type === 'back_forward')) {
-                    if (form && submitButton) {
+                 if (event.persisted || (window.performance && window.performance.getEntriesByType("navigation")[0].type === 'back_forward')) { // More robust check
+                    if (form && submitButton && spinner) {
                         form.classList.remove('processing');
                         submitButton.disabled = false;
-                        if (spinner) spinner.style.display = 'none';
+                        spinner.style.display = 'none';
+                        submitButton.querySelector('i')?.classList.remove('d-none');
                     }
+                    const reportContextData = document.getElementById('report-context-data');
+                    bodyElement.classList.toggle('results-loaded', !!(reportContextData && reportContextData.dataset.report));
                  }
             });
-
 
             // --- Chat Functionality ---
             const chatForm = document.getElementById('chat-form');
@@ -638,38 +1229,38 @@
             const reportContextData = document.getElementById('report-context-data');
             const chatColumn = document.getElementById('chat-column');
             const chatPlaceholder = document.getElementById('chat-placeholder');
-            const exampleQuestionsContainer = document.getElementById('example-questions'); // NEW
-
+            const exampleQuestionsContainer = document.getElementById('example-questions');
             const reportContext = reportContextData ? reportContextData.dataset.report : null;
-            const isChatbotAvailable = {{ chatbot_available|lower if chatbot_available is defined else 'false' }};
-            const isChatEnabled = reportContext && isChatbotAvailable;
+            const isChatbotAvailable = {{ chatbot_available | tojson }};
+            const isChatEnabled = !!reportContext && isChatbotAvailable;
 
              if (chatColumn) {
-                 if (!isChatEnabled) {
-                     chatColumn.classList.add('disabled');
-                     if (chatInput) chatInput.disabled = true;
-                     if (sendButton) sendButton.disabled = true;
-                     if (chatPlaceholder) chatPlaceholder.style.display = 'block';
-                     if (exampleQuestionsContainer) exampleQuestionsContainer.style.display = 'none'; // Hide examples if disabled
-                     console.log("Chat disabled: No report context or chatbot unavailable.");
-                 } else {
-                     chatColumn.classList.remove('disabled');
-                     if (chatInput) chatInput.disabled = false;
-                     if (sendButton) sendButton.disabled = false;
-                     if (chatPlaceholder) chatPlaceholder.style.display = 'none';
-                     if (exampleQuestionsContainer) exampleQuestionsContainer.style.display = 'block'; // Show examples if enabled
-                     console.log("Chat enabled.");
+                 const enableChatUI = (enable) => {
+                     chatColumn.classList.toggle('disabled', !enable);
+                     if (chatInput) chatInput.disabled = !enable;
+                     if (sendButton) sendButton.disabled = !enable;
+                     if (chatPlaceholder) chatPlaceholder.style.display = enable ? 'none' : 'block';
+                     if (exampleQuestionsContainer) exampleQuestionsContainer.style.display = enable ? 'block' : 'none';
+                 };
+                 enableChatUI(isChatEnabled);
+                 if (isChatEnabled && chatMessages) {
+                     chatMessages.scrollTop = chatMessages.scrollHeight;
                  }
              }
 
-            function addChatMessage(message, sender) {
-                 if (!chatMessages) return null;
+            function addChatMessage(message, sender, isThinking = false) {
+                if (!chatMessages) return null;
                 const messageDiv = document.createElement('div');
                 messageDiv.classList.add('chat-message', sender === 'user' ? 'user-message' : 'bot-message');
-                // Basic text setting (Assume backend sanitizes bot responses if needed)
-                messageDiv.textContent = message;
+                if (isThinking) {
+                    messageDiv.classList.add('thinking');
+                    messageDiv.innerHTML = '<span> Thinking...</span>';
+                } else {
+                    const sanitizedMessage = message.replace(/</g, "<").replace(/>/g, ">");
+                    messageDiv.innerHTML = sanitizedMessage;
+                }
                 chatMessages.appendChild(messageDiv);
-                chatMessages.scrollTop = chatMessages.scrollHeight;
+                chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                 return messageDiv;
             }
 
@@ -677,170 +1268,195 @@
                 chatForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     if (!chatInput || !reportContext) return;
-
                     const question = chatInput.value.trim();
-                    if (!question) return;
+                    if (!question || chatInput.disabled) return; // Prevent multiple submits
 
                     addChatMessage(question, 'user');
                     chatInput.value = '';
-                    chatInput.disabled = true;
+                    chatInput.disabled = true; // Disable during processing
                     if (sendButton) sendButton.disabled = true;
-
-                    const thinkingMessage = addChatMessage('', 'bot');
-                     if (thinkingMessage) {
-                         thinkingMessage.classList.add('thinking');
-                         thinkingMessage.textContent = ' Thinking...';
-                     }
+                    const thinkingMessageElement = addChatMessage('', 'bot', true);
 
                     try {
-                        const response = await fetch('/chat', {
+                        const response = await fetch("{{ url_for('chat') }}", {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ question: question, report_context: reportContext }),
                         });
-
-                        if (thinkingMessage) thinkingMessage.classList.remove('thinking');
+                        if (thinkingMessageElement) thinkingMessageElement.remove(); // Remove thinking indicator
 
                         if (!response.ok) {
-                            const errorData = await response.json().catch(() => ({ error: 'Unknown server error' }));
-                            console.error('Chat API Error:', response.status, errorData);
-                            const errorMsg = `Error: ${errorData.error || response.statusText}`;
-                             if (thinkingMessage) { thinkingMessage.textContent = errorMsg; thinkingMessage.style.color = 'red'; }
-                             else { addChatMessage(errorMsg, 'bot').style.color = 'red'; }
+                            let errorMsg = `Chat Error: ${response.status || ''} ${response.statusText}`;
+                            try {
+                                const errorData = await response.json();
+                                errorMsg = `Chat Error: ${errorData.error || response.statusText}`;
+                            } catch (e) { /* Ignore */ }
+                            // Use CSS vars for error color - find the finding highlight color
+                            addChatMessage(errorMsg, 'bot').style.color = 'var(--highlight-finding-color)';
                         } else {
                             const data = await response.json();
-                            const answer = data.answer || "Received empty response.";
-                            // Update thinking message or add new if it failed
-                             if (thinkingMessage) { thinkingMessage.textContent = answer; }
-                             else { addChatMessage(answer, 'bot'); }
+                            addChatMessage(data.answer || "Received empty response.", 'bot');
                         }
                     } catch (error) {
-                        console.error('Fetch error:', error);
-                        const errorMsg = 'Error connecting to the chat service.';
-                        if (thinkingMessage) {
-                            thinkingMessage.classList.remove('thinking');
-                            thinkingMessage.textContent = errorMsg;
-                            thinkingMessage.style.color = 'red';
-                        } else {
-                            addChatMessage(errorMsg, 'bot').style.color = 'red';
-                        }
+                        console.error("Chat fetch error:", error);
+                        if (thinkingMessageElement) thinkingMessageElement.remove();
+                        addChatMessage('Error connecting to the chat service.', 'bot').style.color = 'var(--highlight-finding-color)';
                     } finally {
-                        if(chatInput) chatInput.disabled = false;
-                        if(sendButton) sendButton.disabled = false;
+                        if(chatInput) chatInput.disabled = false; // Re-enable input
+                        if(sendButton) sendButton.disabled = false; // Re-enable button
                         if(chatInput) chatInput.focus();
-                        if(chatMessages) chatMessages.scrollTop = chatMessages.scrollHeight;
+                        if(chatMessages) chatMessages.scrollTo({ top: chatMessages.scrollHeight, behavior: 'smooth' });
                     }
                 });
-            } else if (chatForm && !isChatEnabled) {
-                 chatForm.addEventListener('submit', (e) => e.preventDefault());
-            }
+            } else if (chatForm) { chatForm.addEventListener('submit', (e) => e.preventDefault()); }
 
-            // --- NEW: Example Question Click Handler ---
-            if (exampleQuestionsContainer && chatInput && chatForm) {
+            if (exampleQuestionsContainer && chatInput && isChatEnabled) {
                 exampleQuestionsContainer.addEventListener('click', (e) => {
-                    // Check if a suggestion button was clicked
-                    if (e.target && e.target.classList.contains('suggestion-btn')) {
-                         e.preventDefault(); // Prevent default if it's an <a> tag
+                    if (e.target?.classList.contains('suggestion-btn')) {
+                         e.preventDefault();
                         const questionText = e.target.textContent || e.target.innerText;
-                        if (questionText && !chatInput.disabled) {
-                            chatInput.value = questionText;
-                            chatInput.focus();
-                            // Optional: Automatically submit after clicking suggestion
-                            // chatForm.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-                        }
+                        if (questionText && !chatInput.disabled) { chatInput.value = questionText; chatInput.focus(); }
                     }
                 });
             }
 
-
-            // --- Image Hover Zoom Functionality ---
+            // --- Image Hover Zoom Functionality (with Slider) ---
             const imagePreview = document.getElementById('uploaded-image');
             const zoomPanel = document.getElementById('zoom-preview-panel');
             const imageContainer = document.getElementById('image-result-area');
+            const zoomSlider = document.getElementById('zoom-slider');
+            const zoomValueDisplay = document.getElementById('zoom-value');
+            const zoomControls = document.getElementById('zoom-controls');
 
-            if (imagePreview && zoomPanel && imageContainer) {
-                 let naturalWidth = 0;
-                 let naturalHeight = 0;
-                 const zoomLevel = 1; // Magnification level
+            if (imagePreview && zoomPanel && imageContainer && zoomSlider && zoomValueDisplay && zoomControls) {
+                 let naturalWidth = 0, naturalHeight = 0;
+                 let currentZoomLevel = parseFloat(zoomSlider.value);
+                 let lastPercX = 0.5, lastPercY = 0.5;
+                 let isZoomActive = false;
+
+                 const updateZoomPanelBackground = () => {
+                    if (naturalWidth > 0 && isZoomActive) { // Check isZoomActive here
+                        zoomPanel.style.backgroundSize = `${naturalWidth * currentZoomLevel}px ${naturalHeight * currentZoomLevel}px`;
+                        const panelRect = zoomPanel.getBoundingClientRect();
+                        const bgX = -(lastPercX * (naturalWidth * currentZoomLevel - panelRect.width));
+                        const bgY = -(lastPercY * (naturalHeight * currentZoomLevel - panelRect.height));
+                        zoomPanel.style.backgroundPosition = `${bgX}px ${bgY}px`;
+                    }
+                 };
 
                  const updateImageDimensions = () => {
                      naturalWidth = imagePreview.naturalWidth;
                      naturalHeight = imagePreview.naturalHeight;
-                     if (naturalWidth > 0 && naturalHeight > 0) {
-                         zoomPanel.style.backgroundSize = `${naturalWidth * zoomLevel}px ${naturalHeight * zoomLevel}px`;
-                     } else {
-                          console.error("Image natural dimensions are zero.");
-                          // Optionally disable zoom if image fails to load properly
+                     // No need to call updateZoomPanelBackground here, it happens on mouseenter
+                     if (naturalWidth === 0 && zoomControls) {
+                         zoomControls.style.display = 'none';
                      }
                  };
 
-                 if (imagePreview.complete && imagePreview.naturalWidth > 0) {
-                     updateImageDimensions();
-                 } else {
-                     imagePreview.onload = updateImageDimensions;
-                     imagePreview.onerror = () => { console.error("Image failed to load."); naturalWidth=0; naturalHeight=0; };
-                 }
+                 if (imagePreview.complete && imagePreview.naturalWidth > 0) { updateImageDimensions(); }
+                 else { imagePreview.onload = updateImageDimensions; imagePreview.onerror = updateImageDimensions; }
 
 
-                imageContainer.addEventListener('mouseenter', () => {
-                     if (naturalWidth > 0) {
+                 imageContainer.addEventListener('mouseenter', () => {
+                     if (naturalWidth > 0 && window.innerWidth >= 992) {
+                        isZoomActive = true; // Set flag first
                         zoomPanel.style.backgroundImage = `url('${imagePreview.src}')`;
-                        zoomPanel.style.opacity = '1';
-                        zoomPanel.style.visibility = 'visible';
-                        zoomPanel.style.transition = 'opacity 0.2s ease-out, visibility 0s linear 0s';
+                        updateZoomPanelBackground(); // Now update with current mouse pos/zoom
+                        zoomPanel.style.opacity = '1'; zoomPanel.style.visibility = 'visible';
+                        zoomPanel.style.transition = 'opacity 0.2s ease-out, visibility 0s linear 0s, background-color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing)';
                      }
-                });
+                 });
 
-                imageContainer.addEventListener('mousemove', (e) => {
-                    if (naturalWidth === 0) return;
+                 imageContainer.addEventListener('mousemove', (e) => {
+                    if (!isZoomActive || naturalWidth === 0) return;
+                    const imgRect = imagePreview.getBoundingClientRect();
+                    lastPercX = Math.max(0, Math.min(1, (e.clientX - imgRect.left) / imgRect.width));
+                    lastPercY = Math.max(0, Math.min(1, (e.clientY - imgRect.top) / imgRect.height));
+                    updateZoomPanelBackground();
 
-                    const rect = imagePreview.getBoundingClientRect();
+                    // Position calculation remains the same
                     const containerRect = imageContainer.getBoundingClientRect();
-                    const x = e.clientX - rect.left;
-                    const y = e.clientY - rect.top;
-                    const displayWidth = rect.width;
-                    const displayHeight = rect.height;
-
-                    if (displayWidth <= 0 || displayHeight <= 0) return;
-
-                    const percX = Math.max(0, Math.min(1, x / displayWidth));
-                    const percY = Math.max(0, Math.min(1, y / displayHeight));
-                    const bgX = -(percX * (naturalWidth * zoomLevel - zoomPanel.offsetWidth));
-                    const bgY = -(percY * (naturalHeight * zoomLevel - zoomPanel.offsetHeight));
-
-                    zoomPanel.style.backgroundPosition = `${bgX}px ${bgY}px`;
-
-                    // Dynamic Positioning
+                    const panelRect = zoomPanel.getBoundingClientRect(); // Get updated rect if size changed
                     const gap = 15;
-                    const spaceRight = window.innerWidth - containerRect.right - gap;
-                    const spaceLeft = containerRect.left - gap;
-
-                    if (spaceRight >= zoomPanel.offsetWidth) {
-                        zoomPanel.style.left = `${containerRect.width + gap}px`;
-                        zoomPanel.style.right = 'auto';
-                    } else if (spaceLeft >= zoomPanel.offsetWidth) {
-                        zoomPanel.style.left = 'auto';
-                        zoomPanel.style.right = `${containerRect.width + gap}px`;
+                    let panelLeft = 'auto', panelRight = 'auto';
+                    if ((window.innerWidth - containerRect.right - gap) >= panelRect.width) {
+                        panelLeft = `${imgRect.right - containerRect.left + gap}px`;
+                    } else if ((containerRect.left - gap) >= panelRect.width) {
+                        panelRight = `${containerRect.right - imgRect.left + gap}px`;
                     } else {
-                        zoomPanel.style.left = `${containerRect.width + gap}px`;
-                        zoomPanel.style.right = 'auto';
+                         panelLeft = `${imgRect.right - containerRect.left + gap}px`; // Default right
                     }
-                     zoomPanel.style.top = '0px';
-                });
+                    zoomPanel.style.left = panelLeft;
+                    zoomPanel.style.right = panelRight;
+                    zoomPanel.style.top = `${imgRect.top - containerRect.top}px`;
+                 });
 
                 imageContainer.addEventListener('mouseleave', () => {
-                    zoomPanel.style.opacity = '0';
-                    zoomPanel.style.visibility = 'hidden';
-                    zoomPanel.style.transition = 'opacity 0.2s ease-out, visibility 0s linear 0.2s';
+                    isZoomActive = false; // Reset flag
+                    zoomPanel.style.opacity = '0'; zoomPanel.style.visibility = 'hidden';
+                    zoomPanel.style.transition = 'opacity 0.2s ease-out, visibility 0s linear 0.2s, background-color var(--transition-speed) var(--transition-easing), border-color var(--transition-speed) var(--transition-easing)';
+                });
+
+                zoomSlider.addEventListener('input', () => {
+                    currentZoomLevel = parseFloat(zoomSlider.value);
+                    zoomValueDisplay.textContent = currentZoomLevel.toFixed(1);
+                    updateZoomPanelBackground(); // Update view immediately
+                });
+            }
+
+            // --- Student Notes Functionality ---
+            const notesTextArea = document.getElementById('student-notes-textarea');
+            const keywordsInput = document.getElementById('student-notes-keywords');
+            const copyNotesButton = document.getElementById('copy-notes-button');
+            const copyFeedback = document.getElementById('copy-feedback');
+
+            if (copyNotesButton && notesTextArea && keywordsInput && copyFeedback) {
+                copyNotesButton.addEventListener('click', () => {
+                    const notes = notesTextArea.value.trim();
+                    const keywords = keywordsInput.value.trim();
+                    let textToCopy = "--- Medical Student Notes ---\n\n";
+                    if (keywords) { textToCopy += `Keywords/Tags:\n${keywords}\n\n`; }
+                    if (notes) { textToCopy += `Observations & Learning Points:\n${notes}\n`; }
+                    else if (!keywords) { textToCopy += "(No notes or keywords entered)"; }
+
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        copyFeedback.textContent = 'Copied!';
+                        copyFeedback.classList.remove('text-danger');
+                        copyFeedback.classList.add('text-success');
+                        copyFeedback.style.opacity = '1';
+                        copyNotesButton.disabled = true;
+                        copyNotesButton.innerHTML = '<i class="fas fa-check me-1"></i> Copied!';
+                        setTimeout(() => {
+                            copyFeedback.style.opacity = '0';
+                            copyNotesButton.disabled = false;
+                            copyNotesButton.innerHTML = '<i class="fas fa-copy me-1"></i> Copy Notes & Keywords to Clipboard';
+                        }, 2000);
+                    }).catch(err => {
+                        console.error('Failed to copy notes: ', err);
+                        copyFeedback.textContent = 'Copy Failed!';
+                        copyFeedback.classList.remove('text-success');
+                        copyFeedback.classList.add('text-danger');
+                        copyFeedback.style.opacity = '1';
+                        // Don't disable the button on failure
+                        setTimeout(() => {
+                           copyFeedback.style.opacity = '0';
+                           // Reset text after a delay
+                           setTimeout(() => {
+                                if (copyFeedback.style.opacity === '0') { // Only reset if still hidden
+                                    copyFeedback.textContent = 'Copied!';
+                                    copyFeedback.classList.remove('text-danger');
+                                    copyFeedback.classList.add('text-success');
+                                }
+                           }, 500); // Delay before resetting text allows fade out
+                        }, 2500);
+                    });
                 });
             }
 
             // --- Reset Button Functionality ---
             const resetButton = document.getElementById('reset-button');
              if(resetButton) {
-                 resetButton.addEventListener('click', () => {
-                     window.location.href = '/';
-                 });
+                 resetButton.addEventListener('click', () => { window.location.href = "{{ url_for('index') }}"; });
              }
 
         }); // End DOMContentLoaded
