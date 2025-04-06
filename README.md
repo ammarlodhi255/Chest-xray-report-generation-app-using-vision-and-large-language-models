@@ -2,7 +2,10 @@
 
 A modular monolithic web application that generates radiology-style reports from chest X-ray images using Vision-Language Models (VLMs) and supports multilingual, contextual question-answering via Large Language Models (LLMs).
 
-![Interface Screenshot](images/dark.png)
+![Interface Screenshot (Dark Mode)](images/dark.png)
+![Interface Screenshot (Light Mode)](images/light.png)
+![Notes](images/notes.png)
+![Zoom Functionality](images/zoom.png)
 
 ---
 
