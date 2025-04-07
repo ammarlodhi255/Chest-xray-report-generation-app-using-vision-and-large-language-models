@@ -9,7 +9,7 @@ A modular monolithic web application that generates radiology-style reports from
 
 ---
 
-## 📌 Overview
+## Overview
 
 This project combines computer vision and natural language understanding to assist medical students and practitioners in interpreting chest X-rays. Users can:
 
@@ -21,7 +21,7 @@ This project combines computer vision and natural language understanding to assi
 
 ---
 
-## ⚙️ Features
+## Features
 
 - 🔍 **Vision-Language Report Generation** (Swin-T5, Swin-BART, BLIP)
 - 💬 **Interactive Chatbot (LLaMA-3.1)** with multilingual responses
@@ -33,7 +33,7 @@ This project combines computer vision and natural language understanding to assi
 
 ---
 
-## 🧠 Technology Stack
+## Technology Stack
 
 | Layer         | Technology                         |
 |--------------|-------------------------------------|
@@ -47,7 +47,7 @@ See [`docs/architecture.md`](docs/architecture.md) for full breakdown.
 
 ---
 
-## 🖼️ Application Architecture
+## Application Architecture
 
 This is a **modular monolithic** application organized into the following components:
 
@@ -60,7 +60,7 @@ This is a **modular monolithic** application organized into the following compon
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -68,7 +68,7 @@ This is a **modular monolithic** application organized into the following compon
 - CUDA-enabled GPU (recommended)
 - Docker (optional for containerized setup)
 
-### 🔧 Setup Instructions
+### Setup Instructions
 
 ```bash
 # 1. Clone the repository
