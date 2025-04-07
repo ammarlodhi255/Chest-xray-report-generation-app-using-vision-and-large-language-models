@@ -20,6 +20,11 @@ This project combines computer vision and natural language understanding to assi
 - Take structured notes as a student or educator.
 
 ---
+## Models and Data
+- VLMs used in this project are BLIP, Swin-BART, and Swin-T5
+- LLM used in this project is LLaMA3-8B Instruct (https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct)
+- Dataset used is called "CheXpert Plus". The first chunk of size 155GB is used (https://stanfordaimi.azurewebsites.net/datasets/5158c524-d3ab-4e02-96e9-6ee9efc110a1)
+
 
 ## Features
 
@@ -42,8 +47,6 @@ This project combines computer vision and natural language understanding to assi
 | Deep Learning | Swin-T5, LLaMA-3, BLIP, Torchvision |
 | Deployment    | Docker, NVIDIA CUDA, Git, GitHub   |
 | Development   | VS Code                            |
-
-See [`docs/architecture.md`](docs/architecture.md) for full breakdown.
 
 ---
 
