@@ -90,3 +90,10 @@ python app.py
 
 Then visit: http://127.0.0.1:5000
 ```
+### LLM Interactions
+
+
+![Initialization](images/llm-1.png)
+![Hindi](images/hindi.png)
+![Urdu](images/urdu.png)
+![Norwegian](images/norwegian.png)
