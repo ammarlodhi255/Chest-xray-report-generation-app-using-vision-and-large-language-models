@@ -24,6 +24,7 @@ This project combines computer vision and natural language understanding to assi
 - VLMs used in this project are BLIP, Swin-BART, and Swin-T5
 - LLM used in this project is LLaMA3-8B Instruct (https://huggingface.co/meta-llama/Meta-Llama-3-8B-Instruct)
 - Dataset used is called "CheXpert Plus". The first chunk of size 155GB is used (https://stanfordaimi.azurewebsites.net/datasets/5158c524-d3ab-4e02-96e9-6ee9efc110a1)
+- The weights of the best performing model (Swin +T5) can be found here (https://studntnu-my.sharepoint.com/personal/aleksace_ntnu_no/_layouts/15/onedrive.aspx?id=/personal/aleksace_ntnu_no/Documents/InnovationProject/swin-t5-model.pth&parent=/personal/aleksace_ntnu_no/Documents/InnovationProject&ga=1)
 ---
 
 ## Features
